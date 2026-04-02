@@ -8,9 +8,9 @@ class Config:
 
     # ── Admin — hidden URL, no /admin button on site ───────────────────────
     # Change ADMIN_SECRET_PATH to something only you know e.g. "myfarm2024"
-    ADMIN_SECRET_PATH = os.environ.get("ADMIN_SECRET_PATH", "check.ad")
+    ADMIN_SECRET_PATH = os.environ.get("ADMIN_SECRET_PATH", "path")
     ADMIN_USERNAME    = 'Admin'
-    ADMIN_PASSWORD    = '5624'
+    ADMIN_PASSWORD    = 'pass'
 
     # ── Security ───────────────────────────────────────────────────────────
     SESSION_COOKIE_HTTPONLY  = True
@@ -23,7 +23,7 @@ class Config:
 
     # ── Lipia M-Pesa ──────────────────────────────────────────────────────
     # Get your API key from your Lipia dashboard → Security Tab
-    LIPIA_API_KEY = os.environ.get("LIPIA_API_KEY","3d3203837271008e39a93e6ba5a7d194d70d9318")
+    LIPIA_API_KEY = os.environ.get("LIPIA_API_KEY","")
 
     # ── Files ─────────────────────────────────────────────────────────────
     UPLOAD_FOLDER  = os.path.join(BASE, "static", "uploads")
