@@ -1,0 +1,235 @@
+{% extends "base.html" %}
+{% block title %}{{ pkg.label }} Catalog — CatalogPro{% endblock %}
+{% block topbadge %}<span class="badge">{{ pkg.label }} — KSh {{ pkg.price }}</span>{% endblock %}
+{% block content %}
+
+<div class="progress" style="margin-top:8px">
+  <div class="prog-step"><div class="prog-dot active">1</div><div class="prog-line"></div></div>
+  <div class="prog-step"><div class="prog-dot">2</div><div class="prog-line"></div></div>
+  <div class="prog-step"><div class="prog-dot">3</div></div>
+</div>
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for _,m in msgs %}<div class="flash-err">{{ m }}</div>{% endfor %}
+{% endwith %}
+
+<form action="/submit/{{ pkg_key }}" method="POST" enctype="multipart/form-data">
+<input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+<!-- Business -->
+<div class="card">
+  <div class="card-title">Business Information</div>
+  <label>Business name *</label>
+  <input type="text" name="business_name" placeholder="e.g. Mama Grace Shop" required>
+  <label>Tagline / slogan <span class="opt">optional</span></label>
+  <input type="text" name="tagline" placeholder="e.g. Quality goods, honest prices">
+  <div class="g2">
+    <div><label>Phone *</label><input type="tel" name="phone" placeholder="0712 345 678" required></div>
+    <div><label>Location</label><input type="text" name="location" placeholder="Tom Mboya St, Nairobi"></div>
+  </div>
+  <div class="g2">
+    <div><label>Email <span class="opt">optional</span></label><input type="email" name="email" placeholder="shop@example.com"></div>
+    <div><label>WhatsApp number</label><input type="tel" name="whatsapp" placeholder="0712 345 678"></div>
+  </div>
+  {% if pkg_key == 'premium' %}
+  <div class="g2">
+    <div><label>Instagram handle</label><input type="text" name="instagram" placeholder="myshop_ke"></div>
+    <div><label>Facebook page name</label><input type="text" name="facebook" placeholder="My Shop Kenya"></div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Logo -->
+{% if pkg.logo %}
+<div class="card">
+  <div class="card-title">Business Logo <span class="opt">optional</span></div>
+  <div class="img-drop" onclick="document.getElementById('logo-file').click()">
+    <input type="file" name="logo" id="logo-file" accept="image/*" onchange="previewImg(this,'logo-prev')">
+    <img id="logo-prev" class="img-prev">
+    <div class="img-lbl">📁 Click to upload logo (PNG or JPG recommended)</div>
+  </div>
+</div>
+{% endif %}
+
+<!-- Theme -->
+<div class="card">
+  <div class="card-title">Catalog Theme</div>
+  <div class="themes-row" id="themes-row">
+    {% set tc = {'ivory':'#f9f6f1','slate':'#2c3e50','charcoal':'#1c1c1e','forest':'#1a2e1a','noir':'#0a0a0a'} %}
+    {% for t in pkg.themes %}
+    <label class="t-opt {% if loop.first %}sel{% endif %}" id="topt-{{ t }}">
+      <input type="radio" name="theme" value="{{ t }}" {% if loop.first %}checked{% endif %} onchange="selTheme('{{ t }}')">
+      <span class="t-dot" style="background:{{ tc[t] }}"></span>
+      {{ theme_meta[t].label }}
+    </label>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Products -->
+<div class="card">
+  <div class="card-title">
+    Products &amp; Services
+    <span style="float:right;font-family:'Inter';font-weight:400;font-size:0.72rem;color:var(--pale)">
+      <span id="cnt">0</span> / {{ pkg.max_products }}
+    </span>
+  </div>
+  <div id="prods"></div>
+  <button type="button" id="add-btn">+ Add product</button>
+</div>
+
+<!-- Footer note -->
+<div class="card">
+  <div class="card-title">Footer Message <span class="opt">optional</span></div>
+  <textarea name="footer_note" placeholder="e.g. Call or WhatsApp to order. Delivery available in Nairobi. All prices inclusive of taxes."></textarea>
+</div>
+
+<!-- Payment phone -->
+<div class="card">
+  <div class="card-title">M-Pesa Payment Number</div>
+  <div class="pay-box">
+    <div class="mpesa-tag">M-PESA</div>
+    <p style="font-size:0.82rem;color:var(--mid);margin-bottom:10px">Enter the number to receive the STK push (KSh {{ pkg.price }})</p>
+    <input type="tel" name="pay_phone" placeholder="0712 345 678" required>
+  </div>
+</div>
+
+<button type="submit" class="submit-btn">Preview my catalog →</button>
+<p class="submit-hint">You'll see a preview before paying</p>
+
+</form>
+
+<script>
+const MAX={{ pkg.max_products }}, HAS_IMG={{ 'true' if pkg.images else 'false' }};
+const STORE_KEY = 'cp_form_{{ pkg_key }}';
+let n=0;
+
+/* ── Persistence ── */
+function saveForm(){
+  const get = name => document.querySelector('[name="'+name+'"]')?.value || '';
+  const data = {
+    business_name: get('business_name'), tagline: get('tagline'),
+    phone: get('phone'), location: get('location'),
+    email: get('email'), whatsapp: get('whatsapp'),
+    instagram: get('instagram'), facebook: get('facebook'),
+    footer_note: get('footer_note'), pay_phone: get('pay_phone'),
+    theme: document.querySelector('[name="theme"]:checked')?.value || '',
+    products: []
+  };
+  document.querySelectorAll('.prod-item').forEach(el => {
+    const i = el.id.replace('pr','');
+    data.products.push({
+      name: el.querySelector('[name="pname_'+i+'"]')?.value || '',
+      price: el.querySelector('[name="pprice_'+i+'"]')?.value || '',
+      desc: el.querySelector('[name="pdesc_'+i+'"]')?.value || ''
+    });
+  });
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e){}
+}
+function loadSaved(){
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e){ return null; }
+}
+function clearSaved(){ try { localStorage.removeItem(STORE_KEY); } catch(e){} }
+function bindAutoSave(){
+  document.querySelectorAll('input,textarea,select').forEach(el => {
+    el.removeEventListener('input', saveForm);
+    el.removeEventListener('change', saveForm);
+    el.addEventListener('input', saveForm);
+    el.addEventListener('change', saveForm);
+  });
+}
+
+/* ── Product rows ── */
+function addProd(focus=true, savedData=null){
+  if(n>=MAX){alert('Max '+MAX+' products for this package.');return;}
+  n++; document.getElementById('cnt').textContent=n;
+  const d=document.createElement('div'); d.className='prod-item'; d.id='pr'+n;
+  d.innerHTML = `
+    <div class="prod-n">Product ${n}</div>
+    <button type="button" class="del-btn" onclick="delProd(${n})">✕</button>
+    <div class="prod-grid">
+      <div><label>Name *</label><input type="text" name="pname_${n}" placeholder="e.g. Ankara Dress" required></div>
+      <div><label>Price (KSh) *</label><input type="text" name="pprice_${n}" placeholder="1,500" required></div>
+    </div>
+    <label>Short description <span class="opt">optional</span></label>
+    <input type="text" name="pdesc_${n}" placeholder="Colour, size, material...">
+    ${HAS_IMG ? `<div class="img-drop" style="margin-top:10px">
+      <input type="file" name="pimg_${n}" accept="image/*" onchange="previewImg(this,'pi${n}')">
+      <img id="pi${n}" class="img-prev">
+      <div class="img-lbl">📷 Upload photo (optional)</div>
+    </div>` : ''}`;
+  document.getElementById('prods').appendChild(d);
+  if(savedData){
+    if(savedData.name)  d.querySelector('[name="pname_'+n+'"]').value  = savedData.name;
+    if(savedData.price) d.querySelector('[name="pprice_'+n+'"]').value = savedData.price;
+    if(savedData.desc)  d.querySelector('[name="pdesc_'+n+'"]').value  = savedData.desc;
+  }
+  bindAutoSave();
+  if(focus && !savedData) d.querySelector('input').focus();
+}
+
+function delProd(i){
+  const el=document.getElementById('pr'+i);
+  if(el){el.remove();n--;document.getElementById('cnt').textContent=n;saveForm();}
+}
+
+function previewImg(inp,id){
+  if(!inp.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{const i=document.getElementById(id);if(i){i.src=e.target.result;i.style.display='block';}};
+  r.readAsDataURL(inp.files[0]);
+}
+
+function selTheme(t){
+  document.querySelectorAll('.t-opt').forEach(o=>o.classList.remove('sel'));
+  document.getElementById('topt-'+t)?.classList.add('sel');
+  saveForm();
+}
+
+document.getElementById('add-btn').addEventListener('click',()=>addProd());
+
+/* ── Init: restore saved data or add 3 blank rows ── */
+(function init(){
+  const saved = loadSaved();
+  if(saved){
+    const banner = document.createElement('div');
+    banner.id = 'restore-banner';
+    banner.style.cssText = 'background:#fffbeb;border:1px solid #fde68a;border-radius:8px;'
+      +'padding:10px 14px;margin-bottom:16px;font-size:0.82rem;color:#78350f;'
+      +'display:flex;align-items:center;justify-content:space-between;gap:10px';
+    banner.innerHTML = '<span>&#9999;&#65039; Your previous entries have been restored &mdash; continue editing or make changes below.</span>'
+      +'<button type="button" '
+      +'onclick="clearSaved();location.reload()" '
+      +'style="background:none;border:1px solid #d97706;color:#92400e;border-radius:5px;'
+      +'padding:3px 10px;cursor:pointer;font-size:0.78rem;white-space:nowrap">'
+      +'Clear &amp; start fresh</button>';
+    document.querySelector('form').prepend(banner);
+
+    const set = (name, val) => {
+      const el = document.querySelector('[name="'+name+'"]');
+      if(el && val) el.value = val;
+    };
+    set('business_name', saved.business_name); set('tagline', saved.tagline);
+    set('phone', saved.phone);                 set('location', saved.location);
+    set('email', saved.email);                 set('whatsapp', saved.whatsapp);
+    set('instagram', saved.instagram);         set('facebook', saved.facebook);
+    set('footer_note', saved.footer_note);     set('pay_phone', saved.pay_phone);
+
+    if(saved.theme){
+      const r = document.querySelector('[name="theme"][value="'+saved.theme+'"]');
+      if(r){ r.checked = true; selTheme(saved.theme); }
+    }
+
+    const prods = saved.products || [];
+    if(prods.length){ prods.forEach(p => addProd(false, p)); }
+    else { addProd(false); addProd(false); addProd(false); }
+  } else {
+    addProd(false); addProd(false); addProd(false);
+  }
+  bindAutoSave();
+})();
+
+/* Clear saved data on submit so next visit starts fresh */
+document.querySelector('form').addEventListener('submit', clearSaved);
+</script>
+{% endblock %}

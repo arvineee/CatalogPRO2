@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Pay — CatalogPro{% endblock %}
+{% block topbadge %}<span class="badge">Order #{{ order.id }}</span>{% endblock %}
+{% block content %}
+
+<div class="progress" style="margin-top:8px">
+  <div class="prog-step"><div class="prog-dot done">✓</div><div class="prog-line done-line"></div></div>
+  <div class="prog-step"><div class="prog-dot active">2</div><div class="prog-line"></div></div>
+  <div class="prog-step"><div class="prog-dot">3</div></div>
+</div>
+
+<div class="card">
+  <div class="card-title">Complete Payment</div>
+  <p style="font-size:0.87rem;color:var(--mid);margin-bottom:20px;font-weight:300">Enter your M-Pesa number and tap Pay. A prompt will appear on your phone to confirm.</p>
+
+  <div class="pay-box">
+    <div class="mpesa-tag">M-PESA</div>
+    <div style="font-size:0.75rem;color:var(--pale);margin-bottom:4px">Amount due</div>
+    <div class="amount-lg">KSh {{ order.amount }}</div>
+    <div style="font-size:0.78rem;color:var(--pale);margin-bottom:16px">{{ pkg.label }} Catalog Package</div>
+    <label>M-Pesa phone number</label>
+    <input type="tel" id="mpesa-phone" value="{{ order.phone }}" placeholder="0712 345 678">
+  </div>
+
+  <button class="pay-btn" id="pay-btn" onclick="initPay()" style="margin-top:16px">
+    <span id="pay-txt">Pay KSh {{ order.amount }} via M-Pesa</span>
+  </button>
+  <div class="status-msg" id="smsg"></div>
+</div>
+
+<div class="card">
+  <div class="card-title">What happens next</div>
+  <div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="width:22px;height:22px;border-radius:50%;background:#f4f1ec;color:var(--ink);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
+      <div style="font-size:0.84rem;color:var(--mid);font-weight:300">Click Pay — an M-Pesa prompt appears on your phone</div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="width:22px;height:22px;border-radius:50%;background:#f4f1ec;color:var(--ink);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
+      <div style="font-size:0.84rem;color:var(--mid);font-weight:300">Enter your M-Pesa PIN to confirm</div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:flex-start">
+      <div style="width:22px;height:22px;border-radius:50%;background:#f4f1ec;color:var(--ink);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
+      <div style="font-size:0.84rem;color:var(--mid);font-weight:300">Your PDF is generated and ready to download</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;padding:10px 14px;background:#fafaf8;border-radius:7px;font-size:0.75rem;color:var(--pale)">
+    Save your order ID: <strong style="color:var(--ink);font-family:monospace">{{ order.id }}</strong> — needed for support.
+  </div>
+</div>
+
+<script>
+const OID="{{ order.id }}";
+let polling=null;
+
+async function initPay(){
+  const ph=document.getElementById('mpesa-phone').value.trim();
+  if(!ph){showMsg('Please enter your M-Pesa number.','s-err');return;}
+  const btn=document.getElementById('pay-btn');
+  btn.disabled=true;
+  document.getElementById('pay-txt').innerHTML='<span class="spin"></span> Sending prompt...';
+  try{
+    const r=await fetch('/pay/'+OID,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph})});
+    const d=await r.json();
+    if(d.ok && d.queued){
+      // STK push fired — now wait for user to enter PIN
+      showMsg('📲 Check your phone and enter your M-Pesa PIN.','s-info');
+      document.getElementById('pay-txt').innerHTML='<span class="spin"></span> Waiting for PIN...';
+      startPolling();
+    }else if(d.ok && d.paid){
+      // Instant success (shouldn't normally happen but handle it)
+      showMsg('✓ Payment confirmed! Redirecting...','s-ok');
+      setTimeout(()=>location.href='/status/'+OID,1500);
+    }else{
+      showMsg('✕ '+d.msg,'s-err');
+      btn.disabled=false;
+      document.getElementById('pay-txt').textContent='Try again';
+    }
+  }catch(e){
+    showMsg('Network error. Check your connection and try again.','s-err');
+    btn.disabled=false;
+    document.getElementById('pay-txt').textContent='Try again';
+  }
+}
+
+function startPolling(){
+  let tries=0;
+  polling=setInterval(async()=>{
+    tries++;
+    try{
+      const r=await fetch('/status/'+OID+'?json=1');
+      const d=await r.json();
+      if(d.status==='paid'){
+        clearInterval(polling);
+        showMsg('✓ Payment confirmed! Redirecting...','s-ok');
+        setTimeout(()=>location.href='/status/'+OID,1500);
+      }else if(d.status==='failed'){
+        clearInterval(polling);
+        showMsg('✕ Payment failed. Please try again.','s-err');
+        const btn=document.getElementById('pay-btn');
+        btn.disabled=false;
+        document.getElementById('pay-txt').textContent='Try again';
+      }else if(tries>20){
+        // 80 seconds passed — let user decide
+        clearInterval(polling);
+        showMsg('Taking longer than expected. <a href="/status/'+OID+'" style="color:inherit;text-decoration:underline">Check status</a> or try again.','s-info');
+        const btn=document.getElementById('pay-btn');
+        btn.disabled=false;
+        document.getElementById('pay-txt').textContent='Try again';
+      }
+    }catch(e){}
+  },4000);
+}
+
+function showMsg(m,cls){const el=document.getElementById('smsg');el.innerHTML=m;el.className='status-msg '+cls;el.style.display='block';}
+</script>
+{% endblock %}

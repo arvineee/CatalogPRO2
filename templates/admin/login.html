@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — CatalogPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:#fafaf8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.card{background:#fff;border:1px solid #e4e0da;border-radius:12px;padding:40px 36px;max-width:360px;width:100%}
+h1{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:4px}
+.sub{font-size:0.82rem;color:#888;margin-bottom:28px}
+label{display:block;font-size:0.78rem;color:#666;margin-bottom:5px;margin-top:16px}
+input{width:100%;background:#fafaf8;border:1px solid #e4e0da;border-radius:7px;padding:11px 13px;font-size:0.9rem;outline:none;color:#111}
+input:focus{border-color:#111;background:#fff}
+.btn{width:100%;margin-top:24px;padding:13px;background:#111;color:#fff;border:none;border-radius:7px;font-size:0.9rem;font-weight:500;cursor:pointer}
+.btn:hover{background:#333}
+.err{background:#fdf2f2;border:1px solid #f5c6c6;color:#c0392b;border-radius:7px;padding:10px 14px;font-size:0.82rem;margin-top:16px}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Admin</h1>
+  <p class="sub">CatalogPro dashboard</p>
+  <form method="POST">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <label>Username</label><input type="text" name="username" autofocus>
+    <label>Password</label><input type="password" name="password">
+    <button class="btn" type="submit">Sign in</button>
+  </form>
+  {% with msgs = get_flashed_messages() %}{% for m in msgs %}<div class="err">{{ m }}</div>{% endfor %}{% endwith %}
+</div>
+</body>
+</html>

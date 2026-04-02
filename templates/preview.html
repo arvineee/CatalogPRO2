@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Preview — CatalogPro{% endblock %}
+{% block topbadge %}<span class="badge">Preview · Order #{{ order.id }}</span>{% endblock %}
+{% block content %}
+
+<div class="progress" style="margin-top:8px">
+  <div class="prog-step"><div class="prog-dot done">✓</div><div class="prog-line done-line"></div></div>
+  <div class="prog-step"><div class="prog-dot active">2</div><div class="prog-line"></div></div>
+  <div class="prog-step"><div class="prog-dot">3</div></div>
+</div>
+
+<div class="card preview-wrap">
+  <h2>Here's your catalog preview</h2>
+  <p>This preview shows the first few products of your catalog. Your complete catalog will include all your products after payment.</p>
+
+  {% if prev_file %}
+  <iframe class="pdf-embed" src="/preview-pdf/{{ order.id }}"></iframe>
+  <div class="preview-note">
+    ⚠️ <strong>This is a partial preview.</strong> It shows only a portion of your catalog and includes a watermark. After payment, you'll receive the full, clean version with all your products.
+  </div>
+  {% else %}
+  <div style="height:200px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;color:var(--pale);font-size:0.88rem;margin-bottom:20px">
+    Preview not available — your catalog will be generated after payment.
+  </div>
+  {% endif %}
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <a href="/order/{{ order.package }}" style="display:flex;align-items:center;justify-content:center;padding:12px;border:1px solid var(--line);border-radius:7px;font-size:0.85rem;color:var(--mid);text-decoration:none">
+      ← Edit details
+    </a>
+    <a href="/payment/{{ order.id }}" class="submit-btn" style="text-decoration:none">
+      Pay KSh {{ pkg.price }} →
+    </a>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-title">Order Summary</div>
+  <div class="detail-row"><span>Package</span><span>{{ pkg.label }}</span></div>
+  <div class="detail-row"><span>Amount</span><span>KSh {{ order.amount }}</span></div>
+  <div class="detail-row"><span>Theme</span><span>{{ order.theme | title }}</span></div>
+  <div class="detail-row"><span>Order ID</span><span style="font-family:monospace;font-size:0.8rem">{{ order.id }}</span></div>
+</div>
+
+{% endblock %}

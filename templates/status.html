@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Order Status — CatalogPro{% endblock %}
+{% block content %}
+
+{% if order.status == 'paid' and order.catalog_file %}
+<div class="card status-hero">
+  <div class="status-icon">✅</div>
+  <h1>Catalog Ready</h1>
+  <p>Your professional catalog for <strong>{{ order.business }}</strong> is ready to download.</p>
+</div>
+<div class="card">
+  <a href="/download/{{ order.id }}" class="dl-btn">↓ Download your catalog PDF</a>
+  <a href="/" style="display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--line);border-radius:7px;font-size:0.85rem;color:var(--mid);text-decoration:none;margin-top:10px">Create another catalog</a>
+</div>
+<div class="card">
+  <div class="card-title">Order Details</div>
+  <div class="detail-row"><span>Order ID</span><span style="font-family:monospace;font-size:0.82rem">{{ order.id }}</span></div>
+  <div class="detail-row"><span>Package</span><span>{{ pkg.label }}</span></div>
+  <div class="detail-row"><span>Amount paid</span><span>KSh {{ order.amount }}</span></div>
+  {% if order.mpesa_code %}<div class="detail-row"><span>M-Pesa receipt</span><span style="color:#15803d">{{ order.mpesa_code }}</span></div>{% endif %}
+  {% if order.paid_at %}<div class="detail-row"><span>Paid at</span><span>{{ order.paid_at }}</span></div>{% endif %}
+</div>
+<div class="card" style="background:#fafaf8">
+  <div class="card-title">What to do next</div>
+  <p style="font-size:0.85rem;color:var(--mid);line-height:1.8;font-weight:300">
+    1. Share the PDF on your WhatsApp status and groups<br>
+    2. Post it on your Facebook business page<br>
+    3. Print a few copies to display in your shop<br>
+    4. Save this page link to re-download at any time
+  </p>
+</div>
+
+{% elif order.status in ['pending','awaiting_payment'] %}
+<div class="card status-hero">
+  <div class="status-icon">⏳</div>
+  <h1>Awaiting Payment</h1>
+  <p>We're waiting for your M-Pesa confirmation. This page updates automatically.</p>
+</div>
+<div class="card">
+  <a href="/payment/{{ order.id }}" class="dl-btn" style="background:var(--red)">Complete payment →</a>
+</div>
+<div class="card">
+  <div class="card-title">Order Details</div>
+  <div class="detail-row"><span>Order ID</span><span style="font-family:monospace;font-size:0.82rem">{{ order.id }}</span></div>
+  <div class="detail-row"><span>Amount</span><span>KSh {{ order.amount }}</span></div>
+  <div class="detail-row"><span>Status</span><span style="color:#92400e">Awaiting payment</span></div>
+</div>
+<script>
+setInterval(async()=>{
+  const r=await fetch('/status/{{ order.id }}?json=1');
+  const d=await r.json();
+  if(d.status==='paid' || d.status==='failed') location.reload();
+},5000);
+</script>
+
+{% elif order.status == 'failed' %}
+<div class="card status-hero">
+  <div class="status-icon">❌</div>
+  <h1>Payment Failed</h1>
+  <p>{{ order.mpesa_code if order.mpesa_code and not order.mpesa_code.startswith('failed') else 'The payment could not be completed.' }}</p>
+</div>
+<div class="card">
+  <a href="/payment/{{ order.id }}" class="dl-btn" style="background:var(--red)">Try again →</a>
+  <a href="/" style="display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--line);border-radius:7px;font-size:0.85rem;color:var(--mid);text-decoration:none;margin-top:10px">← Start over</a>
+</div>
+{% else %}
+<div class="card status-hero">
+  <div class="status-icon">😔</div>
+  <h1>Something went wrong</h1>
+  <p>There was an issue with your order. Contact support with order ID <strong>{{ order.id }}</strong>.</p>
+</div>
+<div class="card"><a href="/" class="dl-btn">← Start over</a></div>
+{% endif %}
+
+{% endblock %}
