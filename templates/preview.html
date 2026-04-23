@@ -1,45 +1,164 @@
 {% extends "base.html" %}
-{% block title %}Preview — CatalogPro{% endblock %}
-{% block topbadge %}<span class="badge">Preview · Order #{{ order.id }}</span>{% endblock %}
+{% block title %}Preview Your Catalog — CatalogPro{% endblock %}
+{% block topbadge %}<span class="top-badge">Preview · Order #{{ order.id }}</span>{% endblock %}
+{% block head %}
+<style>
+.preview-hero {
+  background:var(--ink); border-radius:14px;
+  padding:28px 30px; margin-bottom:18px; color:#fff;
+  position:relative; overflow:hidden;
+}
+.preview-hero::before {
+  content:'';
+  position:absolute; top:-40px; right:-40px;
+  width:200px; height:200px; border-radius:50%;
+  background:rgba(194,59,38,.15); pointer-events:none;
+}
+.preview-hero-label {
+  font-size:.68rem; font-weight:600; color:rgba(255,255,255,.5);
+  letter-spacing:2px; text-transform:uppercase; margin-bottom:10px;
+}
+.preview-hero h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.7rem; font-weight:700; margin-bottom:6px; letter-spacing:-.3px;
+}
+.preview-hero p {
+  font-size:.85rem; color:rgba(255,255,255,.6);
+  font-weight:300; line-height:1.6;
+}
+.pdf-container {
+  background:#fff; border:1px solid var(--line);
+  border-radius:14px; overflow:hidden; margin-bottom:18px;
+}
+.pdf-header {
+  background:var(--bg); border-bottom:1px solid var(--line);
+  padding:12px 18px; display:flex; align-items:center; gap:10px;
+}
+.pdf-dots { display:flex; gap:5px; }
+.pdf-dot { width:10px; height:10px; border-radius:50%; }
+.pdf-title-bar { font-size:.73rem; color:var(--pale); margin-left:8px; }
+.pdf-embed {
+  width:100%; height:560px; border:none;
+  display:block; background:#f4f4f4;
+}
+.preview-warning {
+  background:linear-gradient(135deg,#fffbeb,#fef3c7);
+  border:1px solid #fde68a; border-left:3px solid #f59e0b;
+  border-radius:10px; padding:14px 18px;
+  font-size:.83rem; color:#78350f; margin-bottom:20px;
+  display:flex; gap:10px; align-items:flex-start; line-height:1.6;
+}
+.preview-warning-icon { font-size:1.1rem; flex-shrink:0; }
+.cta-grid { display:grid; grid-template-columns:1fr 1.6fr; gap:12px; }
+.btn-edit {
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  padding:14px; border:1.5px solid var(--line); border-radius:9px;
+  font-size:.86rem; color:var(--mid); text-decoration:none;
+  transition:all .2s; font-weight:500;
+}
+.btn-edit:hover { border-color:var(--mid); color:var(--ink); background:#fff; }
+.btn-pay {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:14px; background:var(--red); color:#fff;
+  border-radius:9px; text-decoration:none; font-weight:600;
+  font-size:.95rem; transition:background .2s, transform .15s;
+  letter-spacing:.1px;
+}
+.btn-pay:hover { background:#a83220; transform:translateY(-1px); }
+.summary-row {
+  display:flex; justify-content:space-between; padding:11px 0;
+  border-bottom:1px solid var(--line); font-size:.84rem; align-items:center;
+}
+.summary-row:last-child { border-bottom:none; }
+.summary-row span:first-child { color:var(--pale); }
+.summary-row span:last-child { font-weight:500; }
+.pkg-highlight {
+  display:inline-flex; align-items:center; gap:6px;
+  background:var(--ink); color:#fff; font-size:.72rem;
+  padding:3px 10px; border-radius:99px;
+}
+.no-preview {
+  height:220px; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; gap:12px;
+  color:var(--pale); font-size:.88rem; font-weight:300;
+}
+.no-preview-icon { font-size:2.4rem; opacity:.5; }
+</style>
+{% endblock %}
 {% block content %}
 
-<div class="progress" style="margin-top:8px">
+<div class="progress" style="margin-top:4px">
   <div class="prog-step"><div class="prog-dot done">✓</div><div class="prog-line done-line"></div></div>
   <div class="prog-step"><div class="prog-dot active">2</div><div class="prog-line"></div></div>
   <div class="prog-step"><div class="prog-dot">3</div></div>
 </div>
 
-<div class="card preview-wrap">
-  <h2>Here's your catalog preview</h2>
-  <p>This preview shows the first few products of your catalog. Your complete catalog will include all your products after payment.</p>
-
-  {% if prev_file %}
-  <iframe class="pdf-embed" src="/preview-pdf/{{ order.id }}"></iframe>
-  <div class="preview-note">
-    ⚠️ <strong>This is a partial preview.</strong> It shows only a portion of your catalog and includes a watermark. After payment, you'll receive the full, clean version with all your products.
-  </div>
-  {% else %}
-  <div style="height:200px;display:flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:10px;color:var(--pale);font-size:0.88rem;margin-bottom:20px">
-    Preview not available — your catalog will be generated after payment.
-  </div>
-  {% endif %}
-
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-    <a href="/order/{{ order.package }}" style="display:flex;align-items:center;justify-content:center;padding:12px;border:1px solid var(--line);border-radius:7px;font-size:0.85rem;color:var(--mid);text-decoration:none">
-      ← Edit details
-    </a>
-    <a href="/payment/{{ order.id }}" class="submit-btn" style="text-decoration:none">
-      Pay KSh {{ pkg.price }} →
-    </a>
-  </div>
+<!-- Hero banner -->
+<div class="preview-hero">
+  <div class="preview-hero-label">Step 2 of 3 · Preview</div>
+  <h2>Your catalog is looking great.</h2>
+  <p>Review the preview below. This is a partial watermarked version — your full catalog with all products will be generated after payment.</p>
 </div>
 
+<!-- PDF Viewer -->
+<div class="pdf-container">
+  <div class="pdf-header">
+    <div class="pdf-dots">
+      <div class="pdf-dot" style="background:#ff5f56"></div>
+      <div class="pdf-dot" style="background:#ffbd2e"></div>
+      <div class="pdf-dot" style="background:#27c93f"></div>
+    </div>
+    <div class="pdf-title-bar">{{ order.business }} — CatalogPro Preview</div>
+  </div>
+  {% if prev_file %}
+  <iframe class="pdf-embed" src="/preview-pdf/{{ order.id }}"></iframe>
+  {% else %}
+  <div class="no-preview">
+    <div class="no-preview-icon">📄</div>
+    <span>Preview not available — your full catalog will be generated after payment.</span>
+  </div>
+  {% endif %}
+</div>
+
+{% if prev_file %}
+<div class="preview-warning">
+  <div class="preview-warning-icon">⚠️</div>
+  <div><strong>This is a partial preview</strong> showing only a portion of your catalog with a watermark. After payment, you'll receive the complete, clean version with all your products.</div>
+</div>
+{% endif %}
+
+<!-- CTA Buttons -->
+<div class="cta-grid" style="margin-bottom:18px">
+  <a class="btn-edit" href="/order/{{ order.package }}">← Edit details</a>
+  <a class="btn-pay" href="/payment/{{ order.id }}">
+    Pay KSh {{ pkg.price }} via M-Pesa →
+  </a>
+</div>
+
+<!-- Order Summary -->
 <div class="card">
   <div class="card-title">Order Summary</div>
-  <div class="detail-row"><span>Package</span><span>{{ pkg.label }}</span></div>
-  <div class="detail-row"><span>Amount</span><span>KSh {{ order.amount }}</span></div>
-  <div class="detail-row"><span>Theme</span><span>{{ order.theme | title }}</span></div>
-  <div class="detail-row"><span>Order ID</span><span style="font-family:monospace;font-size:0.8rem">{{ order.id }}</span></div>
+  <div class="summary-row">
+    <span>Business</span>
+    <span>{{ order.business }}</span>
+  </div>
+  <div class="summary-row">
+    <span>Package</span>
+    <span><div class="pkg-highlight">{{ pkg.label }}</div></span>
+  </div>
+  <div class="summary-row">
+    <span>Theme</span>
+    <span>{{ order.theme | title }}</span>
+  </div>
+  <div class="summary-row">
+    <span>Amount</span>
+    <span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;font-weight:700;color:var(--red)">KSh {{ order.amount }}</span>
+  </div>
+  <div class="summary-row">
+    <span>Order ID</span>
+    <span style="font-family:monospace;font-size:.8rem;color:var(--pale)">{{ order.id }}</span>
+  </div>
 </div>
 
 {% endblock %}
+

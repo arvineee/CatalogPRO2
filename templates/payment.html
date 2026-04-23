@@ -1,117 +1,222 @@
 {% extends "base.html" %}
-{% block title %}Pay — CatalogPro{% endblock %}
-{% block topbadge %}<span class="badge">Order #{{ order.id }}</span>{% endblock %}
+{% block title %}Pay via M-Pesa — CatalogPro{% endblock %}
+{% block topbadge %}<span class="top-badge">Order #{{ order.id }}</span>{% endblock %}
+{% block head %}
+<style>
+.pay-hero {
+  background:linear-gradient(135deg,#006534,#004d26);
+  border-radius:14px; padding:28px 30px; margin-bottom:18px; color:#fff;
+  position:relative; overflow:hidden;
+}
+.pay-hero::before {
+  content:'';
+  position:absolute; top:-60px; right:-60px;
+  width:220px; height:220px; border-radius:50%;
+  background:rgba(255,255,255,.06); pointer-events:none;
+}
+.pay-hero::after {
+  content:'';
+  position:absolute; bottom:-40px; left:40px;
+  width:140px; height:140px; border-radius:50%;
+  background:rgba(255,255,255,.04); pointer-events:none;
+}
+.mpesa-logo-band {
+  display:inline-flex; align-items:center; gap:8px;
+  background:rgba(255,255,255,.15); border-radius:8px;
+  padding:6px 14px; margin-bottom:16px;
+  font-size:.7rem; font-weight:700; letter-spacing:1px; color:#fff;
+}
+.pay-amount-label { font-size:.75rem; color:rgba(255,255,255,.6); margin-bottom:4px; }
+.pay-amount-big {
+  font-family:'Cormorant Garamond',serif;
+  font-size:3rem; font-weight:700; color:#fff;
+  line-height:1; margin-bottom:6px;
+}
+.pay-package-name { font-size:.82rem; color:rgba(255,255,255,.6); font-weight:300; }
+.phone-input-wrap {
+  position:relative; margin-top:18px;
+}
+.phone-input-prefix {
+  position:absolute; left:14px; top:50%; transform:translateY(-50%);
+  font-size:.85rem; color:var(--mid); pointer-events:none; font-weight:500;
+}
+.phone-input-pay {
+  width:100%; background:#fff; border:2px solid rgba(255,255,255,.3);
+  border-radius:10px; padding:13px 14px 13px 14px;
+  color:var(--ink); font-family:'DM Sans',sans-serif;
+  font-size:.95rem; outline:none;
+  transition:border-color .2s;
+}
+.phone-input-pay:focus { border-color:rgba(255,255,255,.7); }
+.pay-main-btn {
+  width:100%; padding:16px; margin-top:14px;
+  background:#fff; color:#006534;
+  border:none; border-radius:10px;
+  font-family:'DM Sans',sans-serif; font-size:.95rem; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
+  transition:background .2s, transform .15s, box-shadow .2s;
+  box-shadow:0 4px 16px rgba(0,0,0,.2);
+  position:relative; z-index:1;
+}
+.pay-main-btn:hover { background:#f0fdf4; transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,0,0,.25); }
+.pay-main-btn:disabled { opacity:.6; cursor:not-allowed; transform:none; }
+.status-message {
+  margin-top:14px; padding:13px 16px; border-radius:10px;
+  font-size:.84rem; display:none; border-left:3px solid;
+  line-height:1.6;
+}
+.s-info { background:#eff6ff; border:1px solid #bfdbfe; color:#1d4ed8; border-left-color:#1d4ed8; }
+.s-ok   { background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; border-left-color:#15803d; }
+.s-err  { background:#fdf2f2; border:1px solid #f5c6c6; color:#b91c1c; border-left-color:#b91c1c; }
+.spin   { display:inline-block;width:14px;height:14px;border:2px solid rgba(0,100,52,.2);border-top-color:#006534;border-radius:50%;animation:sp .7s linear infinite; }
+.spin-white { border:2px solid rgba(255,255,255,.3); border-top-color:#fff; }
+@keyframes sp { to { transform:rotate(360deg); } }
+
+.steps-card { margin-bottom:18px; }
+.pay-steps { display:flex; flex-direction:column; gap:0; }
+.pay-step {
+  display:flex; gap:14px; align-items:flex-start; padding:13px 0;
+  border-bottom:1px solid var(--line);
+}
+.pay-step:last-child { border-bottom:none; }
+.pay-step-num {
+  width:26px; height:26px; border-radius:50%;
+  background:var(--bg); color:var(--ink);
+  font-size:.7rem; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; border:1.5px solid var(--line); margin-top:1px;
+}
+.pay-step-txt { font-size:.84rem; color:var(--mid); font-weight:300; line-height:1.6; }
+.pay-step-txt strong { color:var(--ink); font-weight:500; }
+
+.order-ref-strip {
+  background:var(--bg); border:1px solid var(--line);
+  border-radius:8px; padding:11px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  font-size:.78rem; margin-top:14px;
+}
+.order-ref-strip span:first-child { color:var(--pale); }
+.order-ref-strip code {
+  font-family:monospace; font-size:.78rem;
+  color:var(--ink); font-weight:600;
+}
+</style>
+{% endblock %}
 {% block content %}
 
-<div class="progress" style="margin-top:8px">
+<div class="progress" style="margin-top:4px">
   <div class="prog-step"><div class="prog-dot done">✓</div><div class="prog-line done-line"></div></div>
-  <div class="prog-step"><div class="prog-dot active">2</div><div class="prog-line"></div></div>
-  <div class="prog-step"><div class="prog-dot">3</div></div>
+  <div class="prog-step"><div class="prog-dot done">✓</div><div class="prog-line done-line"></div></div>
+  <div class="prog-step"><div class="prog-dot active">3</div></div>
 </div>
 
-<div class="card">
-  <div class="card-title">Complete Payment</div>
-  <p style="font-size:0.87rem;color:var(--mid);margin-bottom:20px;font-weight:300">Enter your M-Pesa number and tap Pay. A prompt will appear on your phone to confirm.</p>
-
-  <div class="pay-box">
-    <div class="mpesa-tag">M-PESA</div>
-    <div style="font-size:0.75rem;color:var(--pale);margin-bottom:4px">Amount due</div>
-    <div class="amount-lg">KSh {{ order.amount }}</div>
-    <div style="font-size:0.78rem;color:var(--pale);margin-bottom:16px">{{ pkg.label }} Catalog Package</div>
-    <label>M-Pesa phone number</label>
-    <input type="tel" id="mpesa-phone" value="{{ order.phone }}" placeholder="0712 345 678">
+<!-- Payment hero card -->
+<div class="pay-hero">
+  <div class="mpesa-logo-band">🟢 M-PESA PAYMENT</div>
+  <div class="pay-amount-label">Total amount</div>
+  <div class="pay-amount-big">KSh {{ order.amount }}</div>
+  <div class="pay-package-name">{{ pkg.label }} Catalog Package</div>
+  <div class="phone-input-wrap">
+    <input type="tel" class="phone-input-pay" id="mpesa-phone"
+           value="{{ order.phone }}" placeholder="0712 345 678">
   </div>
-
-  <button class="pay-btn" id="pay-btn" onclick="initPay()" style="margin-top:16px">
+  <button class="pay-main-btn" id="pay-btn" onclick="initPay()">
     <span id="pay-txt">Pay KSh {{ order.amount }} via M-Pesa</span>
   </button>
-  <div class="status-msg" id="smsg"></div>
+  <div class="status-message" id="smsg"></div>
 </div>
 
-<div class="card">
+<!-- Steps card -->
+<div class="card steps-card">
   <div class="card-title">What happens next</div>
-  <div style="display:flex;flex-direction:column;gap:12px">
-    <div style="display:flex;gap:12px;align-items:flex-start">
-      <div style="width:22px;height:22px;border-radius:50%;background:#f4f1ec;color:var(--ink);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">1</div>
-      <div style="font-size:0.84rem;color:var(--mid);font-weight:300">Click Pay — an M-Pesa prompt appears on your phone</div>
+  <div class="pay-steps">
+    <div class="pay-step">
+      <div class="pay-step-num">1</div>
+      <div class="pay-step-txt">Click <strong>Pay</strong> — an M-Pesa STK Push prompt is sent to your phone immediately.</div>
     </div>
-    <div style="display:flex;gap:12px;align-items:flex-start">
-      <div style="width:22px;height:22px;border-radius:50%;background:#f4f1ec;color:var(--ink);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">2</div>
-      <div style="font-size:0.84rem;color:var(--mid);font-weight:300">Enter your M-Pesa PIN to confirm</div>
+    <div class="pay-step">
+      <div class="pay-step-num">2</div>
+      <div class="pay-step-txt">Open the M-Pesa prompt on your phone and <strong>enter your PIN</strong> to confirm.</div>
     </div>
-    <div style="display:flex;gap:12px;align-items:flex-start">
-      <div style="width:22px;height:22px;border-radius:50%;background:#f4f1ec;color:var(--ink);font-size:0.7rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px">3</div>
-      <div style="font-size:0.84rem;color:var(--mid);font-weight:300">Your PDF is generated and ready to download</div>
+    <div class="pay-step">
+      <div class="pay-step-num">3</div>
+      <div class="pay-step-txt">Your <strong>professional PDF catalog</strong> is generated instantly and ready for download.</div>
     </div>
   </div>
-  <div style="margin-top:16px;padding:10px 14px;background:#fafaf8;border-radius:7px;font-size:0.75rem;color:var(--pale)">
-    Save your order ID: <strong style="color:var(--ink);font-family:monospace">{{ order.id }}</strong> — needed for support.
+  <div class="order-ref-strip">
+    <span>Save your order ID for support</span>
+    <code>{{ order.id }}</code>
   </div>
 </div>
 
 <script>
-const OID="{{ order.id }}";
-let polling=null;
+const OID = "{{ order.id }}";
+let polling = null;
 
-async function initPay(){
-  const ph=document.getElementById('mpesa-phone').value.trim();
-  if(!ph){showMsg('Please enter your M-Pesa number.','s-err');return;}
-  const btn=document.getElementById('pay-btn');
-  btn.disabled=true;
-  document.getElementById('pay-txt').innerHTML='<span class="spin"></span> Sending prompt...';
-  try{
-    const r=await fetch('/pay/'+OID,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:ph})});
-    const d=await r.json();
-    if(d.ok && d.queued){
-      // STK push fired — now wait for user to enter PIN
-      showMsg('📲 Check your phone and enter your M-Pesa PIN.','s-info');
-      document.getElementById('pay-txt').innerHTML='<span class="spin"></span> Waiting for PIN...';
+async function initPay() {
+  const ph = document.getElementById('mpesa-phone').value.trim();
+  if (!ph) { showMsg('Please enter your M-Pesa number.', 's-err'); return; }
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  document.getElementById('pay-txt').innerHTML = '<span class="spin spin-white"></span> Sending prompt...';
+  try {
+    const r = await fetch('/pay/' + OID, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: ph })
+    });
+    const d = await r.json();
+    if (d.ok && d.queued) {
+      showMsg('📲 Check your phone — enter your M-Pesa PIN to confirm.', 's-info');
+      document.getElementById('pay-txt').innerHTML = '<span class="spin spin-white"></span> Waiting for PIN...';
       startPolling();
-    }else if(d.ok && d.paid){
-      // Instant success (shouldn't normally happen but handle it)
-      showMsg('✓ Payment confirmed! Redirecting...','s-ok');
-      setTimeout(()=>location.href='/status/'+OID,1500);
-    }else{
-      showMsg('✕ '+d.msg,'s-err');
-      btn.disabled=false;
-      document.getElementById('pay-txt').textContent='Try again';
+    } else if (d.ok && d.paid) {
+      showMsg('✓ Payment confirmed! Redirecting...', 's-ok');
+      setTimeout(() => location.href = '/status/' + OID, 1500);
+    } else {
+      showMsg('✕ ' + d.msg, 's-err');
+      btn.disabled = false;
+      document.getElementById('pay-txt').textContent = 'Try again';
     }
-  }catch(e){
-    showMsg('Network error. Check your connection and try again.','s-err');
-    btn.disabled=false;
-    document.getElementById('pay-txt').textContent='Try again';
+  } catch (e) {
+    showMsg('Network error. Check your connection and try again.', 's-err');
+    btn.disabled = false;
+    document.getElementById('pay-txt').textContent = 'Try again';
   }
 }
 
-function startPolling(){
-  let tries=0;
-  polling=setInterval(async()=>{
+function startPolling() {
+  let tries = 0;
+  polling = setInterval(async () => {
     tries++;
-    try{
-      const r=await fetch('/status/'+OID+'?json=1');
-      const d=await r.json();
-      if(d.status==='paid'){
+    try {
+      const r = await fetch('/status/' + OID + '?json=1');
+      const d = await r.json();
+      if (d.status === 'paid') {
         clearInterval(polling);
-        showMsg('✓ Payment confirmed! Redirecting...','s-ok');
-        setTimeout(()=>location.href='/status/'+OID,1500);
-      }else if(d.status==='failed'){
+        showMsg('✓ Payment confirmed! Generating your catalog...', 's-ok');
+        setTimeout(() => location.href = '/status/' + OID, 1500);
+      } else if (d.status === 'failed') {
         clearInterval(polling);
-        showMsg('✕ Payment failed. Please try again.','s-err');
-        const btn=document.getElementById('pay-btn');
-        btn.disabled=false;
-        document.getElementById('pay-txt').textContent='Try again';
-      }else if(tries>20){
-        // 80 seconds passed — let user decide
+        showMsg('✕ Payment failed. Please try again.', 's-err');
+        const btn = document.getElementById('pay-btn');
+        btn.disabled = false;
+        document.getElementById('pay-txt').textContent = 'Try again';
+      } else if (tries > 20) {
         clearInterval(polling);
-        showMsg('Taking longer than expected. <a href="/status/'+OID+'" style="color:inherit;text-decoration:underline">Check status</a> or try again.','s-info');
-        const btn=document.getElementById('pay-btn');
-        btn.disabled=false;
-        document.getElementById('pay-txt').textContent='Try again';
+        showMsg('Taking longer than expected. <a href="/status/' + OID + '" style="color:inherit;text-decoration:underline">Check your order status</a> or try again.', 's-info');
+        const btn = document.getElementById('pay-btn');
+        btn.disabled = false;
+        document.getElementById('pay-txt').textContent = 'Try again';
       }
-    }catch(e){}
-  },4000);
+    } catch (e) {}
+  }, 4000);
 }
 
-function showMsg(m,cls){const el=document.getElementById('smsg');el.innerHTML=m;el.className='status-msg '+cls;el.style.display='block';}
+function showMsg(m, cls) {
+  const el = document.getElementById('smsg');
+  el.innerHTML = m; el.className = 'status-message ' + cls; el.style.display = 'block';
+}
 </script>
 {% endblock %}
+

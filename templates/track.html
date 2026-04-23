@@ -1,48 +1,146 @@
 {% extends "base.html" %}
-{% block title %}Track Order — CatalogPro{% endblock %}
+{% block title %}Track Your Order — CatalogPro{% endblock %}
+{% block head %}
+<style>
+.track-hero {
+  background:var(--ink); border-radius:14px;
+  padding:30px; margin-bottom:20px; color:#fff; text-align:center;
+}
+.track-hero h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.8rem; font-weight:700; margin-bottom:8px;
+}
+.track-hero p { font-size:.88rem; color:rgba(255,255,255,.55); margin-bottom:22px; font-weight:300; }
+.track-input-row { display:flex; gap:10px; }
+.track-input-row input {
+  flex:1; padding:13px 16px; border:1.5px solid rgba(255,255,255,.15);
+  border-radius:9px; background:rgba(255,255,255,.08);
+  color:#fff; font-family:'DM Sans',sans-serif; font-size:.9rem;
+  outline:none; transition:border-color .2s;
+}
+.track-input-row input::placeholder { color:rgba(255,255,255,.35); }
+.track-input-row input:focus { border-color:rgba(255,255,255,.4); background:rgba(255,255,255,.12); }
+.track-input-row button {
+  padding:13px 24px; background:var(--red); color:#fff;
+  border:none; border-radius:9px;
+  font-family:'DM Sans',sans-serif; font-size:.88rem; font-weight:500;
+  cursor:pointer; transition:background .2s, transform .15s; white-space:nowrap;
+}
+.track-input-row button:hover { background:#a83220; transform:translateY(-1px); }
+
+.results-label {
+  font-size:.72rem; font-weight:600; color:var(--pale);
+  text-transform:uppercase; letter-spacing:1.5px;
+  margin-bottom:14px; padding-bottom:12px;
+  border-bottom:1px solid var(--line);
+}
+.order-card {
+  border:1px solid var(--line); border-radius:12px;
+  background:#fff; margin-bottom:12px; overflow:hidden;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+  transition:box-shadow .2s;
+}
+.order-card:hover { box-shadow:0 4px 16px rgba(0,0,0,.08); }
+.order-card-top {
+  padding:18px 20px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px;
+}
+.order-card-info h3 { font-size:.95rem; font-weight:600; margin-bottom:4px; }
+.order-card-meta { font-size:.76rem; color:var(--pale); display:flex; gap:12px; flex-wrap:wrap; }
+.order-card-meta span { display:flex; align-items:center; gap:4px; }
+.order-card-actions { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.badge-paid    { background:#f0fdf4; color:#15803d; border:1px solid #bbf7d0; font-size:.7rem; font-weight:600; padding:4px 12px; border-radius:99px; }
+.badge-pending { background:#fffbeb; color:#92400e; border:1px solid #fde68a; font-size:.7rem; font-weight:600; padding:4px 12px; border-radius:99px; }
+.btn-dl {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 18px; background:var(--ink); color:#fff;
+  border-radius:8px; font-size:.8rem; font-weight:500; text-decoration:none;
+  transition:background .2s; white-space:nowrap;
+}
+.btn-dl:hover { background:#2a2520; }
+.btn-pay-now {
+  display:inline-flex; align-items:center; gap:7px;
+  padding:9px 18px; background:var(--red); color:#fff;
+  border-radius:8px; font-size:.8rem; font-weight:500; text-decoration:none;
+  transition:background .2s; white-space:nowrap;
+}
+.btn-pay-now:hover { background:#a83220; }
+
+.order-card-footer {
+  background:var(--bg); border-top:1px solid var(--line);
+  padding:10px 20px; font-size:.74rem; color:var(--pale);
+  display:flex; align-items:center; gap:8px;
+}
+.order-card-footer code { font-family:monospace; color:var(--mid); font-weight:500; }
+
+.empty-state {
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  padding:52px 30px; text-align:center;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+.empty-icon { font-size:2.8rem; margin-bottom:14px; opacity:.5; }
+.empty-title { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:700; margin-bottom:8px; }
+.empty-sub { font-size:.86rem; color:var(--mid); font-weight:300; line-height:1.7; max-width:340px; margin:0 auto; }
+</style>
+{% endblock %}
 {% block content %}
 
-<div class="track-form-card">
+<!-- Hero search -->
+<div class="track-hero">
   <h2>Track Your Order</h2>
-  <p>Enter the phone number you used when placing your order to see all your catalogs.</p>
+  <p>Enter the phone number you used when placing your order to find your catalogs.</p>
   <form method="POST" action="/track">
     <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-    <div class="track-row">
+    <div class="track-input-row">
       <input type="tel" name="phone" value="{{ phone }}" placeholder="0712 345 678" required autofocus>
-      <button type="submit">Search</button>
+      <button type="submit">Search →</button>
     </div>
   </form>
 </div>
 
+<!-- Results -->
 {% if orders is not none %}
   {% if orders %}
-  <div style="margin-bottom:12px">
-    <p style="font-size:0.82rem;color:var(--pale)">Found {{ orders|length }} order(s) for <strong style="color:var(--ink)">{{ phone }}</strong></p>
-  </div>
+  <div class="results-label">Found {{ orders|length }} order{{ 's' if orders|length > 1 }} for {{ phone }}</div>
   {% for o in orders %}
   <div class="order-card">
-    <div class="order-card-left">
-      <h3>{{ o.business }}</h3>
-      <p>{{ packages[o.package].label }} · KSh {{ o.amount }} · {{ o.created_at[:10] }}</p>
+    <div class="order-card-top">
+      <div class="order-card-info">
+        <h3>{{ o.business }}</h3>
+        <div class="order-card-meta">
+          <span>📦 {{ packages[o.package].label if o.package in packages else o.package }}</span>
+          <span>💵 KSh {{ o.amount }}</span>
+          <span>📅 {{ o.created_at[:10] }}</span>
+        </div>
+      </div>
+      <div class="order-card-actions">
+        {% if o.status == 'paid' %}
+          <span class="badge-paid">✓ Paid</span>
+          <a class="btn-dl" href="/download/{{ o.id }}">↓ Download PDF</a>
+        {% else %}
+          <span class="badge-pending">⏳ Pending payment</span>
+          <a class="btn-pay-now" href="/payment/{{ o.id }}">Pay now →</a>
+        {% endif %}
+      </div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-      {% if o.status == 'paid' %}
-        <span class="order-card-badge badge-paid">✓ Paid</span>
-        <a class="btn-dl-sm" href="/download/{{ o.id }}">↓ Download PDF</a>
-      {% else %}
-        <span class="order-card-badge badge-pending">⏳ Pending</span>
-        <a class="btn-dl-sm" style="background:var(--mid)" href="/payment/{{ o.id }}">Complete payment</a>
-      {% endif %}
+    <div class="order-card-footer">
+      Order ID: <code>{{ o.id }}</code>
     </div>
   </div>
   {% endfor %}
+
   {% else %}
-  <div class="card" style="text-align:center;padding:36px">
-    <div style="font-size:1.8rem;margin-bottom:12px">🔍</div>
-    <p style="font-size:0.9rem;color:var(--mid);font-weight:300">No orders found for <strong style="color:var(--ink)">{{ phone }}</strong>.</p>
-    <p style="font-size:0.82rem;color:var(--pale);margin-top:6px">Make sure you enter the exact number you used when ordering.</p>
+  <div class="empty-state">
+    <div class="empty-icon">🔍</div>
+    <div class="empty-title">No orders found</div>
+    <p class="empty-sub">
+      We couldn't find any orders for <strong>{{ phone }}</strong>.<br>
+      Make sure you enter the exact number you used when ordering.
+    </p>
   </div>
   {% endif %}
 {% endif %}
 
 {% endblock %}
+

@@ -1,9 +1,170 @@
 {% extends "base.html" %}
 {% block title %}{{ pkg.label }} Catalog — CatalogPro{% endblock %}
-{% block topbadge %}<span class="badge">{{ pkg.label }} — KSh {{ pkg.price }}</span>{% endblock %}
+{% block topbadge %}<span class="top-badge">{{ pkg.label }} · KSh {{ pkg.price }}</span>{% endblock %}
+{% block head %}
+<style>
+.pkg-banner {
+  background:var(--ink); border-radius:14px; padding:22px 26px;
+  margin-bottom:20px; color:#fff;
+  display:flex; align-items:center; justify-content:space-between; gap:16px;
+}
+.pkg-banner-left h2 {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.4rem; font-weight:700; margin-bottom:3px;
+}
+.pkg-banner-left p { font-size:.82rem; color:rgba(255,255,255,.55); font-weight:300; }
+.pkg-price-tag {
+  text-align:right; flex-shrink:0;
+}
+.pkg-price-val {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.9rem; font-weight:700; color:#fff; line-height:1;
+}
+.pkg-price-lbl { font-size:.68rem; color:rgba(255,255,255,.4); margin-top:2px; }
+.pkg-feats-strip {
+  display:flex; gap:8px; flex-wrap:wrap; margin-top:10px;
+}
+.pkg-feat-chip {
+  background:rgba(255,255,255,.1); color:rgba(255,255,255,.7);
+  font-size:.65rem; padding:3px 10px; border-radius:99px; border:1px solid rgba(255,255,255,.1);
+}
+
+/* Restore banner */
+.restore-banner {
+  background:#fffbeb; border:1px solid #fde68a; border-left:3px solid #f59e0b;
+  border-radius:10px; padding:11px 16px; margin-bottom:18px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  font-size:.82rem; color:#78350f;
+}
+.restore-clear {
+  background:none; border:1px solid #d97706; color:#92400e;
+  border-radius:6px; padding:4px 12px; cursor:pointer;
+  font-size:.75rem; white-space:nowrap; font-family:'DM Sans',sans-serif;
+}
+
+/* Logo drop zone */
+.logo-drop {
+  border:2px dashed var(--line); border-radius:10px;
+  padding:24px; text-align:center; cursor:pointer;
+  position:relative; background:#fff;
+  transition:border-color .2s, background .2s;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.logo-drop:hover { border-color:var(--mid); background:var(--bg); }
+.logo-drop input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.logo-drop-icon { font-size:1.8rem; opacity:.4; }
+.logo-drop-txt { font-size:.78rem; color:var(--pale); }
+.logo-drop-sub { font-size:.7rem; color:var(--pale); opacity:.6; }
+.logo-preview { width:72px; height:72px; object-fit:contain; border-radius:8px; display:none; border:1px solid var(--line); padding:4px; }
+
+/* Theme pills */
+.themes-row { display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.t-opt {
+  cursor:pointer; padding:9px 16px; border-radius:10px;
+  border:1.5px solid var(--line); font-size:.8rem;
+  display:flex; align-items:center; gap:8px;
+  transition:border-color .2s, background .2s; background:#fff;
+  user-select:none;
+}
+.t-opt input[type=radio] { display:none; }
+.t-opt.sel { border-color:var(--ink); background:var(--bg); font-weight:500; }
+.t-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; border:1px solid rgba(0,0,0,.1); box-shadow:0 1px 3px rgba(0,0,0,.1); }
+
+/* Products */
+.prod-item {
+  border:1px solid var(--line); border-radius:11px;
+  padding:18px; margin-bottom:12px; background:var(--bg);
+  position:relative; transition:box-shadow .2s;
+}
+.prod-item:hover { box-shadow:0 2px 8px rgba(0,0,0,.06); }
+.prod-n {
+  font-size:.67rem; color:var(--pale); margin-bottom:12px;
+  font-weight:600; text-transform:uppercase; letter-spacing:.5px;
+}
+.prod-grid { display:grid; grid-template-columns:2fr 1.2fr; gap:12px; }
+.img-drop {
+  border:1.5px dashed var(--line); border-radius:9px; padding:14px;
+  text-align:center; cursor:pointer; position:relative; background:#fff;
+  transition:border-color .2s; margin-top:12px;
+  display:flex; flex-direction:column; align-items:center; gap:6px;
+}
+.img-drop:hover { border-color:var(--mid); }
+.img-drop input { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.img-prev { width:56px; height:56px; object-fit:cover; border-radius:6px; display:none; }
+.img-lbl { font-size:.73rem; color:var(--pale); }
+.del-btn {
+  position:absolute; top:12px; right:12px;
+  border:1px solid var(--line); background:#fff; color:var(--pale);
+  border-radius:6px; padding:4px 9px; font-size:.7rem; cursor:pointer;
+  transition:border-color .2s, color .2s;
+}
+.del-btn:hover { border-color:var(--red); color:var(--red); }
+
+.prod-count-wrap {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:16px;
+}
+.prod-count-lbl { font-size:.72rem; color:var(--pale); }
+.prod-count-val {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1rem; font-weight:700; color:var(--ink);
+}
+.prod-count-max { font-size:.72rem; color:var(--pale); }
+
+#add-btn {
+  width:100%; padding:13px; background:transparent;
+  border:1.5px dashed var(--line); border-radius:10px;
+  color:var(--mid); font-family:'DM Sans',sans-serif;
+  font-size:.85rem; cursor:pointer; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:6px;
+}
+#add-btn:hover { border-color:var(--ink); color:var(--ink); background:#fff; }
+
+/* Pay box */
+.pay-box-inner {
+  background:linear-gradient(135deg,#f0fdf4,#dcfce7);
+  border:1px solid #bbf7d0; border-radius:10px; padding:20px;
+}
+.mpesa-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  background:#006534; color:#fff;
+  font-size:.67rem; font-weight:700;
+  padding:4px 12px; border-radius:6px; margin-bottom:12px;
+  letter-spacing:.5px;
+}
+.pay-box-inner label { margin-top:0; color:#166534; }
+.pay-box-inner input {
+  border-color:#bbf7d0; background:#fff;
+}
+.pay-box-inner input:focus { border-color:#16a34a; }
+.pay-hint { font-size:.76rem; color:#166534; margin-top:8px; opacity:.7; }
+
+/* Submit area */
+.submit-area { margin-top:6px; }
+.submit-btn {
+  width:100%; padding:17px; background:var(--ink); color:#fff;
+  border:none; border-radius:10px;
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.15rem; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+  transition:background .2s, transform .15s, box-shadow .2s;
+  box-shadow:0 4px 16px rgba(0,0,0,.15);
+  letter-spacing:.2px;
+}
+.submit-btn:hover { background:#2a2520; transform:translateY(-1px); box-shadow:0 8px 24px rgba(0,0,0,.2); }
+.submit-hint { font-size:.75rem; color:var(--pale); text-align:center; margin-top:10px; }
+
+@media(max-width:520px) {
+  .pkg-banner { flex-direction:column; align-items:flex-start; }
+  .pkg-price-tag { text-align:left; }
+  .prod-grid { grid-template-columns:1fr; }
+  .g2 { grid-template-columns:1fr; }
+}
+</style>
+{% endblock %}
 {% block content %}
 
-<div class="progress" style="margin-top:8px">
+<div class="progress" style="margin-top:4px">
   <div class="prog-step"><div class="prog-dot active">1</div><div class="prog-line"></div></div>
   <div class="prog-step"><div class="prog-dot">2</div><div class="prog-line"></div></div>
   <div class="prog-step"><div class="prog-dot">3</div></div>
@@ -13,18 +174,38 @@
   {% for _,m in msgs %}<div class="flash-err">{{ m }}</div>{% endfor %}
 {% endwith %}
 
+<!-- Package banner -->
+<div class="pkg-banner">
+  <div class="pkg-banner-left">
+    <h2>{{ pkg.label }} Package</h2>
+    <p>{{ pkg.tagline }} · Up to {{ pkg.max_products }} products</p>
+    <div class="pkg-feats-strip">
+      {% if pkg.images %}<div class="pkg-feat-chip">✓ Product photos</div>{% endif %}
+      {% if pkg.logo %}<div class="pkg-feat-chip">✓ Business logo</div>{% endif %}
+      {% if pkg.qr %}<div class="pkg-feat-chip">✓ WhatsApp QR</div>{% endif %}
+      <div class="pkg-feat-chip">✓ {{ pkg.themes|length }} themes</div>
+    </div>
+  </div>
+  <div class="pkg-price-tag">
+    <div class="pkg-price-val">KSh {{ pkg.price }}</div>
+    <div class="pkg-price-lbl">one-time payment</div>
+  </div>
+</div>
+
 <form action="/submit/{{ pkg_key }}" method="POST" enctype="multipart/form-data">
 <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
 
-<!-- Business -->
+<!-- Business Info -->
 <div class="card">
   <div class="card-title">Business Information</div>
   <label>Business name *</label>
   <input type="text" name="business_name" placeholder="e.g. Mama Grace Shop" required>
+
   <label>Tagline / slogan <span class="opt">optional</span></label>
   <input type="text" name="tagline" placeholder="e.g. Quality goods, honest prices">
+
   <div class="g2">
-    <div><label>Phone *</label><input type="tel" name="phone" placeholder="0712 345 678" required></div>
+    <div><label>Phone number *</label><input type="tel" name="phone" placeholder="0712 345 678" required></div>
     <div><label>Location</label><input type="text" name="location" placeholder="Tom Mboya St, Nairobi"></div>
   </div>
   <div class="g2">
@@ -34,24 +215,26 @@
   {% if pkg_key == 'premium' %}
   <div class="g2">
     <div><label>Instagram handle</label><input type="text" name="instagram" placeholder="myshop_ke"></div>
-    <div><label>Facebook page name</label><input type="text" name="facebook" placeholder="My Shop Kenya"></div>
+    <div><label>Facebook page</label><input type="text" name="facebook" placeholder="My Shop Kenya"></div>
   </div>
   {% endif %}
 </div>
 
-<!-- Logo -->
+<!-- Logo upload -->
 {% if pkg.logo %}
 <div class="card">
-  <div class="card-title">Business Logo <span class="opt">optional</span></div>
-  <div class="img-drop" onclick="document.getElementById('logo-file').click()">
-    <input type="file" name="logo" id="logo-file" accept="image/*" onchange="previewImg(this,'logo-prev')">
-    <img id="logo-prev" class="img-prev">
-    <div class="img-lbl">📁 Click to upload logo (PNG or JPG recommended)</div>
+  <div class="card-title">Business Logo <span style="font-weight:400;color:var(--pale)">optional</span></div>
+  <div class="logo-drop" onclick="document.getElementById('logo-file').click()">
+    <input type="file" name="logo" id="logo-file" accept="image/*" onchange="previewLogo(this)">
+    <img id="logo-preview" class="logo-preview">
+    <div class="logo-drop-icon" id="logo-icon">🖼</div>
+    <div class="logo-drop-txt">Click to upload your business logo</div>
+    <div class="logo-drop-sub">PNG or JPG recommended · Max 5MB</div>
   </div>
 </div>
 {% endif %}
 
-<!-- Theme -->
+<!-- Theme Selector -->
 <div class="card">
   <div class="card-title">Catalog Theme</div>
   <div class="themes-row" id="themes-row">
@@ -59,53 +242,80 @@
     {% for t in pkg.themes %}
     <label class="t-opt {% if loop.first %}sel{% endif %}" id="topt-{{ t }}">
       <input type="radio" name="theme" value="{{ t }}" {% if loop.first %}checked{% endif %} onchange="selTheme('{{ t }}')">
-      <span class="t-dot" style="background:{{ tc[t] }}"></span>
+      <span class="t-dot" style="background:{{ tc[t] }}{% if t=='noir' %};border:1px solid #c9a84c{% endif %}"></span>
       {{ theme_meta[t].label }}
     </label>
     {% endfor %}
   </div>
+  <div id="theme-desc" style="margin-top:10px;font-size:.76rem;color:var(--pale)"></div>
 </div>
 
 <!-- Products -->
 <div class="card">
-  <div class="card-title">
-    Products &amp; Services
-    <span style="float:right;font-family:'Inter';font-weight:400;font-size:0.72rem;color:var(--pale)">
-      <span id="cnt">0</span> / {{ pkg.max_products }}
-    </span>
+  <div class="prod-count-wrap">
+    <div style="font-size:.68rem;font-weight:600;color:var(--pale);text-transform:uppercase;letter-spacing:1.5px">Products &amp; Services</div>
+    <div>
+      <span class="prod-count-val" id="cnt">0</span>
+      <span class="prod-count-max"> / {{ pkg.max_products }}</span>
+    </div>
   </div>
   <div id="prods"></div>
-  <button type="button" id="add-btn">+ Add product</button>
+  <button type="button" id="add-btn">+ Add product or service</button>
 </div>
 
 <!-- Footer note -->
 <div class="card">
-  <div class="card-title">Footer Message <span class="opt">optional</span></div>
-  <textarea name="footer_note" placeholder="e.g. Call or WhatsApp to order. Delivery available in Nairobi. All prices inclusive of taxes."></textarea>
+  <div class="card-title">Footer Message <span style="font-weight:400;color:var(--pale)">optional</span></div>
+  <textarea name="footer_note" placeholder="e.g. Call or WhatsApp to order. Delivery available in Nairobi within 24 hours. Prices inclusive of VAT."></textarea>
 </div>
 
-<!-- Payment phone -->
+<!-- M-Pesa number -->
 <div class="card">
   <div class="card-title">M-Pesa Payment Number</div>
-  <div class="pay-box">
-    <div class="mpesa-tag">M-PESA</div>
-    <p style="font-size:0.82rem;color:var(--mid);margin-bottom:10px">Enter the number to receive the STK push (KSh {{ pkg.price }})</p>
+  <div class="pay-box-inner">
+    <div class="mpesa-badge">🟢 M-PESA STK PUSH</div>
+    <p style="font-size:.82rem;color:#166534;margin-bottom:12px;font-weight:300">Enter the number to receive the payment prompt (KSh {{ pkg.price }})</p>
+    <label>M-Pesa phone number *</label>
     <input type="tel" name="pay_phone" placeholder="0712 345 678" required>
+    <div class="pay-hint">⚡ You'll confirm payment via PIN on your phone — no need to enter it here</div>
   </div>
 </div>
 
-<button type="submit" class="submit-btn">Preview my catalog →</button>
-<p class="submit-hint">You'll see a preview before paying</p>
+<!-- Submit -->
+<div class="submit-area">
+  <button type="submit" class="submit-btn">Preview my catalog →</button>
+  <p class="submit-hint">You'll see a preview of your catalog before any payment is charged</p>
+</div>
 
 </form>
 
 <script>
-const MAX={{ pkg.max_products }}, HAS_IMG={{ 'true' if pkg.images else 'false' }};
+const MAX = {{ pkg.max_products }};
+const HAS_IMG = {{ 'true' if pkg.images else 'false' }};
 const STORE_KEY = 'cp_form_{{ pkg_key }}';
-let n=0;
+const THEME_DESCS = {
+  ivory:    'Warm white background — timeless and professional',
+  slate:    'Cool grey & gold — corporate and trustworthy',
+  charcoal: 'Dark bold theme — modern and striking',
+  forest:   'Deep green — natural and organic feel',
+  noir:     'Black & gold — luxury and premium look',
+};
+let n = 0;
+
+/* ── Logo preview ── */
+function previewLogo(inp) {
+  if (!inp.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    const img = document.getElementById('logo-preview');
+    img.src = e.target.result; img.style.display = 'block';
+    document.getElementById('logo-icon').style.display = 'none';
+  };
+  r.readAsDataURL(inp.files[0]);
+}
 
 /* ── Persistence ── */
-function saveForm(){
+function saveForm() {
   const get = name => document.querySelector('[name="'+name+'"]')?.value || '';
   const data = {
     business_name: get('business_name'), tagline: get('tagline'),
@@ -119,18 +329,16 @@ function saveForm(){
   document.querySelectorAll('.prod-item').forEach(el => {
     const i = el.id.replace('pr','');
     data.products.push({
-      name: el.querySelector('[name="pname_'+i+'"]')?.value || '',
+      name:  el.querySelector('[name="pname_'+i+'"]')?.value || '',
       price: el.querySelector('[name="pprice_'+i+'"]')?.value || '',
-      desc: el.querySelector('[name="pdesc_'+i+'"]')?.value || ''
+      desc:  el.querySelector('[name="pdesc_'+i+'"]')?.value || '',
     });
   });
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e){}
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(data)); } catch(e) {}
 }
-function loadSaved(){
-  try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e){ return null; }
-}
-function clearSaved(){ try { localStorage.removeItem(STORE_KEY); } catch(e){} }
-function bindAutoSave(){
+function loadSaved() { try { return JSON.parse(localStorage.getItem(STORE_KEY)); } catch(e) { return null; } }
+function clearSaved() { try { localStorage.removeItem(STORE_KEY); } catch(e) {} }
+function bindAutoSave() {
   document.querySelectorAll('input,textarea,select').forEach(el => {
     el.removeEventListener('input', saveForm);
     el.removeEventListener('change', saveForm);
@@ -140,88 +348,95 @@ function bindAutoSave(){
 }
 
 /* ── Product rows ── */
-function addProd(focus=true, savedData=null){
-  if(n>=MAX){alert('Max '+MAX+' products for this package.');return;}
-  n++; document.getElementById('cnt').textContent=n;
-  const d=document.createElement('div'); d.className='prod-item'; d.id='pr'+n;
+function addProd(focus=true, savedData=null) {
+  if (n >= MAX) { alert('Max '+MAX+' products for this package.'); return; }
+  n++; document.getElementById('cnt').textContent = n;
+  const d = document.createElement('div');
+  d.className = 'prod-item'; d.id = 'pr'+n;
   d.innerHTML = `
     <div class="prod-n">Product ${n}</div>
-    <button type="button" class="del-btn" onclick="delProd(${n})">✕</button>
+    <button type="button" class="del-btn" onclick="delProd(${n})">✕ Remove</button>
     <div class="prod-grid">
-      <div><label>Name *</label><input type="text" name="pname_${n}" placeholder="e.g. Ankara Dress" required></div>
-      <div><label>Price (KSh) *</label><input type="text" name="pprice_${n}" placeholder="1,500" required></div>
+      <div>
+        <label>Product / service name *</label>
+        <input type="text" name="pname_${n}" placeholder="e.g. Ankara Maxi Dress" required>
+      </div>
+      <div>
+        <label>Price (KSh) *</label>
+        <input type="text" name="pprice_${n}" placeholder="e.g. 1,500" required>
+      </div>
     </div>
     <label>Short description <span class="opt">optional</span></label>
-    <input type="text" name="pdesc_${n}" placeholder="Colour, size, material...">
-    ${HAS_IMG ? `<div class="img-drop" style="margin-top:10px">
+    <input type="text" name="pdesc_${n}" placeholder="Colour, size, material, key details...">
+    ${HAS_IMG ? `<div class="img-drop">
       <input type="file" name="pimg_${n}" accept="image/*" onchange="previewImg(this,'pi${n}')">
       <img id="pi${n}" class="img-prev">
-      <div class="img-lbl">📷 Upload photo (optional)</div>
-    </div>` : ''}`;
+      <div class="img-lbl">📷 Upload product photo (optional)</div>
+    </div>` : ''}
+  `;
   document.getElementById('prods').appendChild(d);
-  if(savedData){
-    if(savedData.name)  d.querySelector('[name="pname_'+n+'"]').value  = savedData.name;
-    if(savedData.price) d.querySelector('[name="pprice_'+n+'"]').value = savedData.price;
-    if(savedData.desc)  d.querySelector('[name="pdesc_'+n+'"]').value  = savedData.desc;
+  if (savedData) {
+    if (savedData.name)  d.querySelector('[name="pname_'+n+'"]').value  = savedData.name;
+    if (savedData.price) d.querySelector('[name="pprice_'+n+'"]').value = savedData.price;
+    if (savedData.desc)  d.querySelector('[name="pdesc_'+n+'"]').value  = savedData.desc;
   }
   bindAutoSave();
-  if(focus && !savedData) d.querySelector('input').focus();
+  if (focus && !savedData) d.querySelector('input').focus();
 }
 
-function delProd(i){
-  const el=document.getElementById('pr'+i);
-  if(el){el.remove();n--;document.getElementById('cnt').textContent=n;saveForm();}
+function delProd(i) {
+  const el = document.getElementById('pr'+i);
+  if (el) { el.remove(); n--; document.getElementById('cnt').textContent = n; saveForm(); }
 }
 
-function previewImg(inp,id){
-  if(!inp.files[0])return;
-  const r=new FileReader();
-  r.onload=e=>{const i=document.getElementById(id);if(i){i.src=e.target.result;i.style.display='block';}};
+function previewImg(inp, id) {
+  if (!inp.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => { const i = document.getElementById(id); if (i) { i.src = e.target.result; i.style.display = 'block'; } };
   r.readAsDataURL(inp.files[0]);
 }
 
-function selTheme(t){
-  document.querySelectorAll('.t-opt').forEach(o=>o.classList.remove('sel'));
+function selTheme(t) {
+  document.querySelectorAll('.t-opt').forEach(o => o.classList.remove('sel'));
   document.getElementById('topt-'+t)?.classList.add('sel');
+  const desc = document.getElementById('theme-desc');
+  if (desc) desc.textContent = THEME_DESCS[t] || '';
   saveForm();
 }
 
-document.getElementById('add-btn').addEventListener('click',()=>addProd());
+// Set initial theme desc
+const checkedTheme = document.querySelector('[name="theme"]:checked')?.value;
+if (checkedTheme) {
+  const desc = document.getElementById('theme-desc');
+  if (desc) desc.textContent = THEME_DESCS[checkedTheme] || '';
+}
 
-/* ── Init: restore saved data or add 3 blank rows ── */
-(function init(){
+document.getElementById('add-btn').addEventListener('click', () => addProd());
+
+/* ── Init: restore saved or add blanks ── */
+(function init() {
   const saved = loadSaved();
-  if(saved){
+  if (saved) {
     const banner = document.createElement('div');
-    banner.id = 'restore-banner';
-    banner.style.cssText = 'background:#fffbeb;border:1px solid #fde68a;border-radius:8px;'
-      +'padding:10px 14px;margin-bottom:16px;font-size:0.82rem;color:#78350f;'
-      +'display:flex;align-items:center;justify-content:space-between;gap:10px';
-    banner.innerHTML = '<span>&#9999;&#65039; Your previous entries have been restored &mdash; continue editing or make changes below.</span>'
-      +'<button type="button" '
-      +'onclick="clearSaved();location.reload()" '
-      +'style="background:none;border:1px solid #d97706;color:#92400e;border-radius:5px;'
-      +'padding:3px 10px;cursor:pointer;font-size:0.78rem;white-space:nowrap">'
-      +'Clear &amp; start fresh</button>';
+    banner.className = 'restore-banner';
+    banner.innerHTML = '<span>✏️ Your previous entries have been restored — continue editing below.</span>'
+      +'<button type="button" class="restore-clear" onclick="clearSaved();location.reload()">Clear &amp; start fresh</button>';
     document.querySelector('form').prepend(banner);
 
-    const set = (name, val) => {
-      const el = document.querySelector('[name="'+name+'"]');
-      if(el && val) el.value = val;
-    };
+    const set = (name, val) => { const el = document.querySelector('[name="'+name+'"]'); if (el && val) el.value = val; };
     set('business_name', saved.business_name); set('tagline', saved.tagline);
     set('phone', saved.phone);                 set('location', saved.location);
     set('email', saved.email);                 set('whatsapp', saved.whatsapp);
     set('instagram', saved.instagram);         set('facebook', saved.facebook);
     set('footer_note', saved.footer_note);     set('pay_phone', saved.pay_phone);
 
-    if(saved.theme){
+    if (saved.theme) {
       const r = document.querySelector('[name="theme"][value="'+saved.theme+'"]');
-      if(r){ r.checked = true; selTheme(saved.theme); }
+      if (r) { r.checked = true; selTheme(saved.theme); }
     }
 
     const prods = saved.products || [];
-    if(prods.length){ prods.forEach(p => addProd(false, p)); }
+    if (prods.length) prods.forEach(p => addProd(false, p));
     else { addProd(false); addProd(false); addProd(false); }
   } else {
     addProd(false); addProd(false); addProd(false);
@@ -229,7 +444,7 @@ document.getElementById('add-btn').addEventListener('click',()=>addProd());
   bindAutoSave();
 })();
 
-/* Clear saved data on submit so next visit starts fresh */
 document.querySelector('form').addEventListener('submit', clearSaved);
 </script>
 {% endblock %}
+
