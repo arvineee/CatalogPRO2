@@ -1,75 +1,548 @@
 {% extends "base.html" %}
-{% block title %}Order Status — CatalogPro{% endblock %}
+{% block title %}
+  {% if order.status == 'paid' %}Your Catalog is Ready — CatalogPro
+  {% elif order.status in ['pending','awaiting_payment'] %}Complete Your Payment — CatalogPro
+  {% else %}Order Status — CatalogPro{% endif %}
+{% endblock %}
+
+{% block head %}
+<style>
+/* ══════════════════════════════════════════
+   STATUS PAGE — Premium Delivery Experience
+══════════════════════════════════════════ */
+
+/* Override wrap for this page */
+.wrap{ max-width:640px; padding:0 20px 80px; }
+
+/* ── PAID STATE ── */
+.delivery-hero{
+  text-align:center;
+  padding:48px 32px 36px;
+  background:linear-gradient(160deg, #0d1a12 0%, #0a1a0d 60%, #061008 100%);
+  border-radius:18px;
+  margin-bottom:20px;
+  position:relative;
+  overflow:hidden;
+}
+.delivery-hero::before{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse at 50% 0%, rgba(26,107,58,.35) 0%, transparent 70%);
+}
+.confetti-row{
+  position:absolute;top:0;left:0;right:0;height:100%;
+  pointer-events:none;overflow:hidden;
+}
+.confetti-dot{
+  position:absolute;width:6px;height:6px;border-radius:50%;
+  animation:confetti-fall linear infinite;
+  opacity:.7;
+}
+@keyframes confetti-fall{
+  0%{transform:translateY(-20px) rotate(0deg);opacity:.8}
+  100%{transform:translateY(300px) rotate(360deg);opacity:0}
+}
+.dh-check{
+  width:72px;height:72px;border-radius:50%;
+  background:rgba(26,107,58,.25);
+  border:2px solid rgba(26,200,90,.4);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;position:relative;z-index:1;
+  animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.dh-check svg{width:32px;height:32px;stroke:#2ecc71;stroke-width:2.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.dh-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.8rem;font-weight:700;color:#fff;
+  margin-bottom:8px;position:relative;z-index:1;
+}
+.dh-sub{
+  font-size:0.88rem;color:rgba(255,255,255,.55);
+  position:relative;z-index:1;
+  line-height:1.6;
+}
+.dh-biz{color:rgba(255,255,255,.85);font-weight:600}
+
+/* Download section */
+.download-card{
+  background:#fff;border:1px solid var(--line);
+  border-radius:16px;padding:28px;margin-bottom:16px;
+  box-shadow:0 4px 20px rgba(0,0,0,.05);
+}
+.dl-main-btn{
+  display:flex;align-items:center;justify-content:space-between;
+  width:100%;padding:18px 22px;
+  background:linear-gradient(135deg,#1a6b3a,#0f4a26);
+  color:#fff;border:none;border-radius:12px;
+  font-family:'Playfair Display',serif;
+  font-size:1.05rem;font-weight:700;
+  text-decoration:none;cursor:pointer;
+  transition:all .25s;
+  box-shadow:0 6px 24px rgba(26,107,58,.35);
+  position:relative;overflow:hidden;
+  margin-bottom:12px;
+}
+.dl-main-btn::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.1),transparent);
+}
+.dl-main-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 10px 32px rgba(26,107,58,.45);
+}
+.dl-btn-left{display:flex;align-items:center;gap:12px}
+.dl-icon-wrap{
+  width:38px;height:38px;border-radius:9px;
+  background:rgba(255,255,255,.15);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.dl-btn-text{}
+.dl-btn-label{font-size:1rem;line-height:1.1}
+.dl-btn-hint{font-size:0.68rem;opacity:.65;font-family:'Inter',sans-serif;font-weight:400;margin-top:1px}
+.dl-btn-size{font-size:0.75rem;opacity:.6;font-family:'Inter',sans-serif;font-weight:400}
+
+/* Share buttons */
+.share-title{font-size:0.68rem;font-weight:600;color:var(--pale);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:12px}
+.share-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.share-btn{
+  display:flex;align-items:center;gap:10px;
+  padding:12px 14px;border-radius:10px;
+  border:1.5px solid var(--line);
+  font-size:0.82rem;font-weight:600;color:var(--ink);
+  text-decoration:none;transition:all .2s;background:#fff;
+  cursor:pointer;
+}
+.share-btn:hover{border-color:var(--ink);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.share-btn-wa{border-color:rgba(37,211,102,.3);color:#128c7e}
+.share-btn-wa:hover{border-color:#128c7e;background:#f0fdf4}
+.share-btn-wa .sb-icon{background:#25d366}
+.sb-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:0.9rem;
+}
+.sb-icon svg{width:16px;height:16px;fill:#fff}
+
+/* "Create another" secondary button */
+.secondary-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:13px;
+  border:1.5px solid var(--line);border-radius:10px;
+  font-size:0.85rem;font-weight:500;color:var(--mid);
+  text-decoration:none;transition:all .2s;
+  margin-top:8px;
+}
+.secondary-btn:hover{border-color:var(--ink);color:var(--ink)}
+
+/* Order details card */
+.order-details-card{
+  background:#fff;border:1px solid var(--line);
+  border-radius:16px;overflow:hidden;margin-bottom:16px;
+}
+.odc-header{
+  padding:16px 22px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.odc-title{font-size:0.68rem;font-weight:700;color:var(--pale);text-transform:uppercase;letter-spacing:1.5px}
+.odc-status{
+  display:inline-flex;align-items:center;gap:5px;
+  background:#f0fdf4;border:1px solid #bbf7d0;
+  color:#15803d;font-size:0.68rem;font-weight:700;
+  padding:3px 10px;border-radius:99px;
+}
+.odc-status::before{content:'';width:5px;height:5px;border-radius:50%;background:#15803d;flex-shrink:0}
+.odc-rows{padding:0 22px}
+.odc-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--line);font-size:0.85rem;
+}
+.odc-row:last-child{border-bottom:none}
+.odc-row-label{color:var(--pale)}
+.odc-row-value{font-weight:600;color:var(--ink)}
+.mpesa-code{
+  font-family:monospace;font-size:0.82rem;
+  background:#f0fdf4;color:#15803d;
+  padding:3px 8px;border-radius:5px;
+  font-weight:700;
+}
+.order-id-val{font-family:monospace;font-size:0.78rem;color:var(--mid)}
+
+/* What to do next */
+.next-steps-card{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:16px;padding:22px;margin-bottom:16px;
+}
+.next-steps-title{font-size:0.68rem;font-weight:700;color:var(--pale);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:16px}
+.next-step-list{display:flex;flex-direction:column;gap:12px}
+.next-step-item{display:flex;align-items:flex-start;gap:12px;font-size:0.83rem;color:var(--mid);line-height:1.6}
+.ns-num{
+  width:24px;height:24px;border-radius:50%;
+  background:var(--ink);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:0.65rem;font-weight:700;flex-shrink:0;margin-top:1px;
+}
+
+/* ── PENDING STATE ── */
+.pending-hero{
+  text-align:center;padding:40px 24px 32px;
+  background:linear-gradient(160deg,#1a1200,#100d00);
+  border-radius:18px;margin-bottom:20px;
+  border:1px solid rgba(200,137,26,.2);
+}
+.pending-ring{
+  width:68px;height:68px;border-radius:50%;
+  margin:0 auto 18px;position:relative;
+}
+.pending-ring::before{
+  content:'';position:absolute;inset:0;
+  border:3px solid rgba(200,137,26,.2);border-radius:50%;
+}
+.pending-ring::after{
+  content:'';position:absolute;inset:0;
+  border:3px solid transparent;
+  border-top-color:#c8891a;border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pending-ring-inner{
+  position:absolute;inset:8px;
+  border-radius:50%;background:rgba(200,137,26,.1);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.4rem;
+}
+.pending-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.5rem;font-weight:700;color:#fff;
+  margin-bottom:8px;
+}
+.pending-sub{font-size:0.84rem;color:rgba(255,255,255,.5);line-height:1.6}
+
+.pay-action-card{
+  background:#fff;border:1px solid var(--line);
+  border-radius:16px;padding:24px;margin-bottom:16px;
+}
+.pay-amount-display{
+  text-align:center;padding:20px;
+  background:var(--bg);border-radius:10px;margin-bottom:20px;
+  border:1px solid var(--line);
+}
+.pad-label{font-size:0.7rem;color:var(--pale);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.pad-amount{
+  font-family:'Playfair Display',serif;
+  font-size:2.4rem;font-weight:700;color:var(--ink);
+  line-height:1;
+}
+.pad-amount sup{font-size:1rem;font-family:'Inter',sans-serif;font-weight:500;vertical-align:super}
+.pad-pkg{font-size:0.78rem;color:var(--mid);margin-top:4px}
+.mpesa-pay-btn{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:16px;background:#006534;color:#fff;
+  border:none;border-radius:12px;
+  font-family:'Inter',sans-serif;font-size:0.95rem;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  box-shadow:0 6px 20px rgba(0,101,52,.3);text-decoration:none;
+}
+.mpesa-pay-btn:hover{background:#005028;transform:translateY(-1px);box-shadow:0 8px 24px rgba(0,101,52,.4)}
+
+.auto-refresh-note{
+  display:flex;align-items:center;gap:8px;justify-content:center;
+  font-size:0.75rem;color:var(--pale);margin-top:14px;
+  padding:10px 14px;background:var(--bg);border-radius:8px;border:1px solid var(--line);
+}
+.refresh-dot{width:6px;height:6px;border-radius:50%;background:var(--gold,#c8891a);animation:blink 1.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+
+/* ── FAILED STATE ── */
+.failed-hero{
+  text-align:center;padding:40px 24px 32px;
+  background:linear-gradient(160deg,#1a0808,#110505);
+  border-radius:18px;margin-bottom:20px;
+  border:1px solid rgba(192,57,43,.2);
+}
+.failed-icon{
+  width:68px;height:68px;border-radius:50%;
+  background:rgba(192,57,43,.15);border:2px solid rgba(192,57,43,.3);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 18px;font-size:1.8rem;
+}
+.failed-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.5rem;font-weight:700;color:#fff;margin-bottom:8px;
+}
+.failed-sub{font-size:0.84rem;color:rgba(255,255,255,.5);line-height:1.6}
+.retry-btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  width:100%;padding:15px;background:#c0392b;color:#fff;
+  border-radius:12px;font-family:'Playfair Display',serif;
+  font-size:1rem;font-weight:700;text-decoration:none;
+  transition:all .2s;margin-bottom:10px;
+  box-shadow:0 4px 16px rgba(192,57,43,.3);
+}
+.retry-btn:hover{background:#a93226;transform:translateY(-1px)}
+
+/* ── GENERIC ERROR ── */
+.error-hero{
+  text-align:center;padding:40px 24px 32px;
+  background:#fafaf8;border:1px solid var(--line);
+  border-radius:18px;margin-bottom:20px;
+}
+.error-icon{font-size:2.5rem;margin-bottom:14px}
+.error-title{
+  font-family:'Playfair Display',serif;
+  font-size:1.4rem;font-weight:700;margin-bottom:8px;
+}
+.error-sub{font-size:0.85rem;color:var(--mid);line-height:1.6}
+</style>
+{% endblock %}
+
 {% block content %}
 
 {% if order.status == 'paid' and order.catalog_file %}
-<div class="card status-hero">
-  <div class="status-icon">✅</div>
-  <h1>Catalog Ready</h1>
-  <p>Your professional catalog for <strong>{{ order.business }}</strong> is ready to download.</p>
+<!-- ══════════ PAID — CATALOG READY ══════════ -->
+
+<!-- Hero success banner -->
+<div class="delivery-hero">
+  <!-- Confetti dots -->
+  <div class="confetti-row">
+    <div class="confetti-dot" style="left:10%;background:#c8891a;animation-duration:3.2s;animation-delay:0s"></div>
+    <div class="confetti-dot" style="left:25%;background:#2ecc71;animation-duration:2.8s;animation-delay:.4s"></div>
+    <div class="confetti-dot" style="left:40%;background:#fff;animation-duration:3.5s;animation-delay:.1s"></div>
+    <div class="confetti-dot" style="left:60%;background:#c8891a;animation-duration:2.6s;animation-delay:.7s"></div>
+    <div class="confetti-dot" style="left:75%;background:#2ecc71;animation-duration:3.1s;animation-delay:.2s"></div>
+    <div class="confetti-dot" style="left:88%;background:#fff;animation-duration:2.9s;animation-delay:.5s"></div>
+  </div>
+  <div class="dh-check">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="dh-title">Your catalog is ready!</div>
+  <div class="dh-sub">
+    <span class="dh-biz">{{ order.business }}</span><br>
+    Professional PDF catalog — download it below
+  </div>
 </div>
-<div class="card">
-  <a href="/download/{{ order.id }}" class="dl-btn">↓ Download your catalog PDF</a>
-  <a href="/" style="display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--line);border-radius:7px;font-size:0.85rem;color:var(--mid);text-decoration:none;margin-top:10px">Create another catalog</a>
+
+<!-- Download card -->
+<div class="download-card">
+  <a href="/download/{{ order.id }}" class="dl-main-btn">
+    <div class="dl-btn-left">
+      <div class="dl-icon-wrap">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="dl-btn-text">
+        <div class="dl-btn-label">Download your catalog PDF</div>
+        <div class="dl-btn-hint">Print-ready · Works on all devices</div>
+      </div>
+    </div>
+    <div class="dl-btn-size">↓ PDF</div>
+  </a>
+
+  <div class="share-title">Share your catalog</div>
+  <div class="share-row">
+    <a class="share-btn share-btn-wa" href="https://wa.me/?text=Check%20out%20my%20new%20catalog!%20Download%20it%20here%3A%20{{ request.url | urlencode }}" target="_blank" rel="noopener">
+      <div class="sb-icon" style="background:#25d366">
+        <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      </div>
+      Share on WhatsApp
+    </a>
+    <button class="share-btn" onclick="copyLink()">
+      <div class="sb-icon" style="background:#666">
+        <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+      </div>
+      <span id="copy-label">Copy link</span>
+    </button>
+  </div>
+  <a class="secondary-btn" href="/">
+    ✦ Create another catalog
+  </a>
 </div>
-<div class="card">
-  <div class="card-title">Order Details</div>
-  <div class="detail-row"><span>Order ID</span><span style="font-family:monospace;font-size:0.82rem">{{ order.id }}</span></div>
-  <div class="detail-row"><span>Package</span><span>{{ pkg.label }}</span></div>
-  <div class="detail-row"><span>Amount paid</span><span>KSh {{ order.amount }}</span></div>
-  {% if order.mpesa_code %}<div class="detail-row"><span>M-Pesa receipt</span><span style="color:#15803d">{{ order.mpesa_code }}</span></div>{% endif %}
-  {% if order.paid_at %}<div class="detail-row"><span>Paid at</span><span>{{ order.paid_at }}</span></div>{% endif %}
+
+<!-- Order details -->
+<div class="order-details-card">
+  <div class="odc-header">
+    <div class="odc-title">Order Summary</div>
+    <div class="odc-status">Paid & Delivered</div>
+  </div>
+  <div class="odc-rows">
+    <div class="odc-row">
+      <span class="odc-row-label">Business</span>
+      <span class="odc-row-value">{{ order.business }}</span>
+    </div>
+    <div class="odc-row">
+      <span class="odc-row-label">Package</span>
+      <span class="odc-row-value">{{ pkg.label }}</span>
+    </div>
+    <div class="odc-row">
+      <span class="odc-row-label">Amount paid</span>
+      <span class="odc-row-value">KSh {{ "{:,}".format(order.amount) }}</span>
+    </div>
+    {% if order.mpesa_code %}
+    <div class="odc-row">
+      <span class="odc-row-label">M-Pesa receipt</span>
+      <span class="mpesa-code">{{ order.mpesa_code }}</span>
+    </div>
+    {% endif %}
+    {% if order.paid_at %}
+    <div class="odc-row">
+      <span class="odc-row-label">Paid at</span>
+      <span class="odc-row-value" style="font-weight:400;color:var(--mid)">{{ order.paid_at }}</span>
+    </div>
+    {% endif %}
+    <div class="odc-row">
+      <span class="odc-row-label">Order ID</span>
+      <span class="order-id-val">{{ order.id }}</span>
+    </div>
+  </div>
 </div>
-<div class="card" style="background:#fafaf8">
-  <div class="card-title">What to do next</div>
-  <p style="font-size:0.85rem;color:var(--mid);line-height:1.8;font-weight:300">
-    1. Share the PDF on your WhatsApp status and groups<br>
-    2. Post it on your Facebook business page<br>
-    3. Print a few copies to display in your shop<br>
-    4. Save this page link to re-download at any time
-  </p>
+
+<!-- What to do next -->
+<div class="next-steps-card">
+  <div class="next-steps-title">🚀 Make the most of your catalog</div>
+  <div class="next-step-list">
+    <div class="next-step-item">
+      <div class="ns-num">1</div>
+      Share it on your WhatsApp status and business groups — it's the fastest way to get orders.
+    </div>
+    <div class="next-step-item">
+      <div class="ns-num">2</div>
+      Post it on your Facebook business page and Instagram — pin it to the top.
+    </div>
+    <div class="next-step-item">
+      <div class="ns-num">3</div>
+      Print a few copies to display in your shop so walk-in customers can browse.
+    </div>
+    <div class="next-step-item">
+      <div class="ns-num">4</div>
+      Bookmark this page — you can re-download your catalog here anytime, the link never expires.
+    </div>
+  </div>
 </div>
 
 {% elif order.status in ['pending','awaiting_payment'] %}
-<div class="card status-hero">
-  <div class="status-icon">⏳</div>
-  <h1>Awaiting Payment</h1>
-  <p>We're waiting for your M-Pesa confirmation. This page updates automatically.</p>
+<!-- ══════════ PENDING — AWAITING PAYMENT ══════════ -->
+
+<div class="pending-hero">
+  <div class="pending-ring">
+    <div class="pending-ring-inner">💳</div>
+  </div>
+  <div class="pending-title">Waiting for payment</div>
+  <div class="pending-sub">
+    Your catalog is ready to generate — we're waiting for your M-Pesa confirmation.<br>
+    This page updates automatically.
+  </div>
 </div>
-<div class="card">
-  <a href="/payment/{{ order.id }}" class="dl-btn" style="background:var(--red)">Complete payment →</a>
+
+<div class="pay-action-card">
+  <div class="pay-amount-display">
+    <div class="pad-label">Amount to pay</div>
+    <div class="pad-amount"><sup>KSh </sup>{{ "{:,}".format(order.amount) }}</div>
+    <div class="pad-pkg">{{ pkg.label }} Catalog</div>
+  </div>
+
+  <a href="/payment/{{ order.id }}" class="mpesa-pay-btn">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    Pay with M-Pesa →
+  </a>
+
+  <div class="auto-refresh-note">
+    <div class="refresh-dot"></div>
+    Checking for payment automatically every 5 seconds…
+  </div>
 </div>
-<div class="card">
-  <div class="card-title">Order Details</div>
-  <div class="detail-row"><span>Order ID</span><span style="font-family:monospace;font-size:0.82rem">{{ order.id }}</span></div>
-  <div class="detail-row"><span>Amount</span><span>KSh {{ order.amount }}</span></div>
-  <div class="detail-row"><span>Status</span><span style="color:#92400e">Awaiting payment</span></div>
+
+<div class="order-details-card">
+  <div class="odc-header">
+    <div class="odc-title">Order Details</div>
+    <div class="odc-status" style="background:#fffbeb;border-color:#fde68a;color:#92400e">
+      <span style="background:#d97706"></span>Awaiting payment
+    </div>
+  </div>
+  <div class="odc-rows">
+    <div class="odc-row">
+      <span class="odc-row-label">Order ID</span>
+      <span class="order-id-val">{{ order.id }}</span>
+    </div>
+    <div class="odc-row">
+      <span class="odc-row-label">Package</span>
+      <span class="odc-row-value">{{ pkg.label }}</span>
+    </div>
+    <div class="odc-row">
+      <span class="odc-row-label">Amount</span>
+      <span class="odc-row-value">KSh {{ "{:,}".format(order.amount) }}</span>
+    </div>
+  </div>
 </div>
+
 <script>
 setInterval(async()=>{
-  const r=await fetch('/status/{{ order.id }}?json=1');
-  const d=await r.json();
-  if(d.status==='paid' || d.status==='failed') location.reload();
+  try{
+    const r=await fetch('/status/{{ order.id }}?json=1');
+    const d=await r.json();
+    if(d.status==='paid'||d.status==='failed') location.reload();
+  }catch(e){}
 },5000);
 </script>
 
 {% elif order.status == 'failed' %}
-<div class="card status-hero">
-  <div class="status-icon">❌</div>
-  <h1>Payment Failed</h1>
-  <p>{{ order.mpesa_code if order.mpesa_code and not order.mpesa_code.startswith('failed') else 'The payment could not be completed.' }}</p>
+<!-- ══════════ FAILED — PAYMENT FAILED ══════════ -->
+
+<div class="failed-hero">
+  <div class="failed-icon">✕</div>
+  <div class="failed-title">Payment didn't go through</div>
+  <div class="failed-sub">
+    {{ order.mpesa_code if order.mpesa_code and not order.mpesa_code.startswith('failed') else 'The M-Pesa payment could not be completed.' }}<br>
+    Don't worry — your catalog details are saved. Try again below.
+  </div>
 </div>
-<div class="card">
-  <a href="/payment/{{ order.id }}" class="dl-btn" style="background:var(--red)">Try again →</a>
-  <a href="/" style="display:flex;align-items:center;justify-content:center;padding:11px;border:1px solid var(--line);border-radius:7px;font-size:0.85rem;color:var(--mid);text-decoration:none;margin-top:10px">← Start over</a>
+
+<div class="pay-action-card">
+  <a href="/payment/{{ order.id }}" class="retry-btn">
+    ↩ Try payment again
+  </a>
+  <a class="secondary-btn" href="/">← Start over with a new order</a>
 </div>
+
+<div class="order-details-card">
+  <div class="odc-header">
+    <div class="odc-title">Order Details</div>
+    <div class="odc-status" style="background:#fdf2f2;border-color:#f5c6c6;color:#b91c1c">
+      <span style="background:#c0392b"></span>Payment failed
+    </div>
+  </div>
+  <div class="odc-rows">
+    <div class="odc-row">
+      <span class="odc-row-label">Order ID</span>
+      <span class="order-id-val">{{ order.id }}</span>
+    </div>
+    <div class="odc-row">
+      <span class="odc-row-label">Amount</span>
+      <span class="odc-row-value">KSh {{ "{:,}".format(order.amount) }}</span>
+    </div>
+  </div>
+</div>
+
 {% else %}
-<div class="card status-hero">
-  <div class="status-icon">😔</div>
-  <h1>Something went wrong</h1>
-  <p>There was an issue with your order. Contact support with order ID <strong>{{ order.id }}</strong>.</p>
+<!-- ══════════ UNKNOWN / ERROR ══════════ -->
+<div class="error-hero">
+  <div class="error-icon">⚠️</div>
+  <div class="error-title">Something went wrong</div>
+  <div class="error-sub">
+    There was an issue with this order.<br>
+    Contact support with order ID: <strong>{{ order.id }}</strong>
+  </div>
 </div>
-<div class="card"><a href="/" class="dl-btn">← Start over</a></div>
+<div class="download-card">
+  <a href="/" class="dl-main-btn">← Back to home</a>
+</div>
 {% endif %}
 
+<script>
+function copyLink(){
+  navigator.clipboard.writeText(window.location.href).then(()=>{
+    const lbl = document.getElementById('copy-label');
+    if(lbl){lbl.textContent='Copied!';setTimeout(()=>{lbl.textContent='Copy link'},2000);}
+  });
+}
+</script>
 {% endblock %}
+
