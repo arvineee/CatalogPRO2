@@ -280,8 +280,11 @@ def _admin_url(endpoint, **kw):
         "admin_mark_paid":     f"{base}/mark-paid/{kw.get('order_id','')}",
         "admin_download":      f"{base}/dl/{kw.get('order_id','')}",
         "admin_delete":        f"{base}/del/{kw.get('order_id','')}",
-        "admin_bypass_pay":    f"{base}/bypass-pay/{kw.get('order_id','')}",
-        "admin_simulate_stk":  f"{base}/simulate-stk/{kw.get('order_id','')}",
+        "admin_bypass_pay":         f"{base}/bypass-pay/{kw.get('order_id','')}",
+        "admin_simulate_stk":       f"{base}/simulate-stk/{kw.get('order_id','')}",
+        "admin_job_abandoned":      f"{base}/jobs/abandoned",
+        "admin_job_daily_summary":  f"{base}/jobs/daily-summary",
+        "admin_job_backup":         f"{base}/jobs/backup",
     }
     return routes.get(endpoint, base)
 
@@ -784,6 +787,83 @@ def admin_delete(order_id):
     return redirect(f"/{SECRET}/")
 
 
+# ── Admin Job Routes (replaces APScheduler) ───────────────────────────────────
+
+@app.route(f"/{SECRET}/jobs/abandoned", methods=["POST"])
+@admin_only
+def admin_job_abandoned():
+    """Flag abandoned orders (was: APScheduler every 45 min)."""
+    _verify_csrf()
+    try:
+        from models import db, Order
+        cutoff = datetime.utcnow() - timedelta(minutes=45)
+        abandoned = Order.query.filter(
+            Order.status.in_(["pending", "awaiting_payment"]),
+            Order.created_at <= cutoff,
+            Order.follow_up_sent == False,
+        ).all()
+        for order in abandoned:
+            order.follow_up_sent = True
+        if abandoned:
+            db.session.commit()
+        flash(f"✅ Abandoned check done — {len(abandoned)} order(s) flagged.", "success")
+    except Exception as e:
+        flash(f"❌ Abandoned check failed: {e}", "error")
+    return redirect(f"/{SECRET}/")
+
+
+@app.route(f"/{SECRET}/jobs/daily-summary", methods=["POST"])
+@admin_only
+def admin_job_daily_summary():
+    """Send admin daily summary email (was: APScheduler daily 08:00)."""
+    _verify_csrf()
+    try:
+        from models import db, Order
+        from email_utils import send_admin_daily_summary
+        from sqlalchemy import func
+        today = datetime.utcnow().date()
+        today_orders  = Order.query.filter(
+            Order.status == "paid",
+            func.date(Order.paid_at) == today,
+        ).all()
+        today_revenue = sum(o.amount for o in today_orders)
+        total_orders  = Order.query.filter_by(status="paid").count()
+        total_revenue = db.session.query(func.sum(Order.amount)).filter_by(status="paid").scalar() or 0
+        pending       = Order.query.filter(Order.status.in_(["pending", "awaiting_payment"])).count()
+        by_pkg = {}
+        for o in today_orders:
+            by_pkg.setdefault(o.package, [0, 0])
+            by_pkg[o.package][0] += 1
+            by_pkg[o.package][1] += o.amount
+        send_admin_daily_summary({
+            "date":          str(today),
+            "today_orders":  len(today_orders),
+            "today_revenue": today_revenue,
+            "total_orders":  total_orders,
+            "total_revenue": total_revenue,
+            "pending":       pending,
+            "by_package":    [(pkg, v[0], v[1]) for pkg, v in by_pkg.items()],
+        })
+        flash(f"✅ Daily summary sent for {today}.", "success")
+    except Exception as e:
+        flash(f"❌ Daily summary failed: {e}", "error")
+    return redirect(f"/{SECRET}/")
+
+
+@app.route(f"/{SECRET}/jobs/backup", methods=["POST"])
+@admin_only
+def admin_job_backup():
+    """Run MySQL database backup (was: APScheduler weekly Sunday)."""
+    _verify_csrf()
+    try:
+        from scheduler import run_backup
+        run_backup()
+        flash("✅ Database backup completed successfully.", "success")
+    except Exception as e:
+        flash(f"❌ Backup failed: {e}", "error")
+    return redirect(f"/{SECRET}/")
+
+
 # Block common probes
 for probe in ["/admin", "/admin/", "/wp-admin", "/wp-login.php", "/.env"]:
     app.add_url_rule(probe, probe, lambda: abort(404))
@@ -792,4 +872,5 @@ for probe in ["/admin", "/admin/", "/wp-admin", "/wp-login.php", "/.env"]:
 if __name__ == "__main__":
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     app.run(debug=debug, host="0.0.0.0", port=5050)
+
 

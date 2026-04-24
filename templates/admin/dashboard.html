@@ -1,293 +1,1257 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Dashboard — CatalogPro</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CatalogPro — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f5f2;--ink:#131211;--mid:#6b6460;--pale:#a09890;--line:#e8e2d9;--red:#c23b26;--gold:#b8892a;--green:#15803d;--card:#fff;--nav:60px}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
-/* ── NAV ── */
-.nav{height:var(--nav);background:var(--ink);display:flex;align-items:center;padding:0 32px;gap:16px;position:sticky;top:0;z-index:100}
-.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:#fff;font-weight:700}
-.nav-logo em{color:var(--red);font-style:normal}
-.nav-badge{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:.65rem;padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.1)}
-.nav-links{display:flex;gap:4px;margin-left:auto}
-.nav-link{padding:7px 14px;border-radius:7px;color:rgba(255,255,255,.6);font-size:.82rem;text-decoration:none;transition:all .2s}
-.nav-link:hover{background:rgba(255,255,255,.1);color:#fff}
-.nav-link.danger:hover{background:rgba(194,59,38,.3);color:#f87171}
-/* ── LAYOUT ── */
-.main{max-width:1360px;margin:0 auto;padding:28px 32px 60px}
-/* ── STATS ── */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
-.stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-.stat-label{font-size:.68rem;color:var(--pale);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.stat-val{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;line-height:1}
-.stat-sub{font-size:.73rem;color:var(--pale);margin-top:4px}
-/* ── CHART ── */
-.chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
-.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
-.card-title{font-size:.78rem;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.5px}
-/* ── PRICES FORM ── */
-.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
-.price-pkg{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:18px}
-.price-pkg-name{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;color:var(--mid)}
-.price-pkg label{display:block;font-size:.72rem;color:var(--pale);margin-bottom:5px;margin-top:12px}
-.price-pkg label:first-of-type{margin-top:0}
-.price-pkg input,.price-pkg textarea{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--ink);outline:none;transition:border-color .2s}
-.price-pkg input:focus,.price-pkg textarea:focus{border-color:var(--ink)}
-/* ── TABLES ── */
-.tbl-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.82rem}
-th{padding:10px 14px;text-align:left;font-size:.68rem;font-weight:600;color:var(--pale);text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid var(--line);white-space:nowrap}
-td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
-tr:hover td{background:#faf8f4}
-.badge{display:inline-block;font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:99px}
-.badge-paid{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
-.badge-pending{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
-.badge-failed{background:#fdf2f2;color:#b91c1c;border:1px solid #f5c6c6}
-.badge-awaiting{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
-.btn-sm{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border:1px solid var(--line);border-radius:6px;font-size:.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;color:var(--mid);background:#fff;transition:all .2s;white-space:nowrap}
-.btn-sm:hover{border-color:var(--ink);color:var(--ink)}
-.btn-sm.danger:hover{border-color:var(--red);color:var(--red)}
-.btn-sm.green:hover{border-color:var(--green);color:var(--green)}
-/* ── FOLLOWUPS ── */
-.followup-card{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;border-radius:10px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.followup-info h4{font-size:.88rem;font-weight:600;margin-bottom:3px}
-.followup-info p{font-size:.76rem;color:var(--mid)}
-/* ── INLINE FORM ── */
-.inline-form{display:inline}
-.sav-btn{width:100%;margin-top:16px;padding:12px;background:var(--ink);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:background .2s}
-.sav-btn:hover{background:#2a2520}
-.flash{padding:10px 16px;border-radius:8px;margin-bottom:18px;font-size:.84rem;border-left:3px solid}
-.flash.success{background:#f0fdf4;border-color:#15803d;color:#15803d}
-.flash.error{background:#fdf2f2;border-color:var(--red);color:var(--red)}
-@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.price-grid{grid-template-columns:1fr}}
-@media(max-width:600px){.main{padding:16px}.stats{grid-template-columns:1fr 1fr}}
+/* ── Reset & Base ─────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #0d0f14;
+  --surface:   #151820;
+  --surface2:  #1c2030;
+  --border:    #252a3a;
+  --border2:   #2e3550;
+  --text:      #e8eaf2;
+  --muted:     #6b7394;
+  --accent:    #4ade80;
+  --accent2:   #22d3ee;
+  --warn:      #fb923c;
+  --danger:    #f87171;
+  --gold:      #fbbf24;
+  --purple:    #a78bfa;
+  --radius:    10px;
+  --font-head: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+}
+
+html { font-size: 14px; }
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.5;
+}
+
+a { color: var(--accent2); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* ── Layout ────────────────────────────────────────────────── */
+.shell { display: flex; min-height: 100vh; }
+
+/* ── Sidebar ───────────────────────────────────────────────── */
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .logo-mark {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+}
+.sidebar-logo .logo-sub {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  margin-top: 2px;
+}
+.sidebar-nav { padding: 12px 0; flex: 1; }
+.nav-label {
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  padding: 12px 20px 6px;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover, .nav-item.active {
+  color: var(--text);
+  background: var(--surface2);
+  border-left-color: var(--accent);
+}
+.nav-item .icon { font-size: 1rem; width: 18px; text-align: center; }
+.sidebar-footer {
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+.sidebar-footer a {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  transition: color 0.15s;
+}
+.sidebar-footer a:hover { color: var(--danger); text-decoration: none; }
+
+/* ── Main ──────────────────────────────────────────────────── */
+.main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.topbar-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.3px;
+}
+.topbar-right { display: flex; align-items: center; gap: 12px; }
+.topbar-time {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--muted);
+  background: var(--surface2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+
+.content { padding: 28px; flex: 1; }
+
+/* ── Flash messages ────────────────────────────────────────── */
+.flash-stack { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+.flash {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  animation: slideDown 0.2s ease;
+}
+@keyframes slideDown { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+.flash.success { background: #052e16; border: 1px solid #166534; color: #86efac; }
+.flash.error   { background: #2d0a0a; border: 1px solid #7f1d1d; color: #fca5a5; }
+.flash-close { background: none; border: none; cursor: pointer; color: inherit; font-size: 1rem; opacity: 0.6; }
+.flash-close:hover { opacity: 1; }
+
+/* ── Section tabs ──────────────────────────────────────────── */
+.section { display: none; }
+.section.active { display: block; }
+
+/* ── Stat cards ────────────────────────────────────────────── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.stat-card:hover { border-color: var(--border2); }
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+}
+.stat-card.green::before  { background: var(--accent); }
+.stat-card.cyan::before   { background: var(--accent2); }
+.stat-card.orange::before { background: var(--warn); }
+.stat-card.purple::before { background: var(--purple); }
+.stat-label {
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+}
+.stat-value {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--text);
+}
+.stat-sub {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 6px;
+}
+.stat-icon {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  font-size: 1.4rem;
+  opacity: 0.15;
+}
+
+/* ── Chart ─────────────────────────────────────────────────── */
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 28px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.card-badge {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 3px 8px;
+  border-radius: 20px;
+  color: var(--muted);
+}
+.chart-wrap { position: relative; height: 200px; }
+
+/* ── Tables ────────────────────────────────────────────────── */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.table-toolbar {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 12px;
+  min-width: 200px;
+}
+.search-box input {
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  width: 100%;
+}
+.search-box input::placeholder { color: var(--muted); }
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.filter-btn {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.filter-btn:hover, .filter-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(74,222,128,0.08);
+}
+table { width: 100%; border-collapse: collapse; }
+thead tr { border-bottom: 1px solid var(--border); }
+th {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+  padding: 10px 16px;
+  text-align: left;
+  font-weight: 500;
+  white-space: nowrap;
+}
+td {
+  padding: 11px 16px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: var(--surface2); }
+.mono { font-family: var(--font-mono); font-size: 0.75rem; }
+.text-muted { color: var(--muted); }
+
+/* ── Status badges ─────────────────────────────────────────── */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.badge-paid    { background: #052e16; border:1px solid #166534; color: #86efac; }
+.badge-pending { background: #2d1b00; border:1px solid #78350f; color: #fed7aa; }
+.badge-failed  { background: #2d0a0a; border:1px solid #7f1d1d; color: #fca5a5; }
+.badge-await   { background: #071d2d; border:1px solid #075985; color: #7dd3fc; }
+.badge-error   { background: #2a0a2a; border:1px solid #6b21a8; color: #d8b4fe; }
+
+/* ── Action buttons ────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  text-decoration: none;
+}
+.btn:hover { text-decoration: none; }
+.btn-ghost  { background: var(--surface2); border-color: var(--border); color: var(--text); }
+.btn-ghost:hover  { border-color: var(--border2); }
+.btn-green  { background: rgba(74,222,128,0.12); border-color: #166534; color: var(--accent); }
+.btn-green:hover  { background: rgba(74,222,128,0.2); }
+.btn-cyan   { background: rgba(34,211,238,0.1); border-color: #155e75; color: var(--accent2); }
+.btn-cyan:hover   { background: rgba(34,211,238,0.18); }
+.btn-red    { background: rgba(248,113,113,0.1); border-color: #7f1d1d; color: var(--danger); }
+.btn-red:hover    { background: rgba(248,113,113,0.18); }
+.btn-orange { background: rgba(251,146,60,0.1); border-color: #7c2d12; color: var(--warn); }
+.btn-orange:hover { background: rgba(251,146,60,0.18); }
+.btn-purple { background: rgba(167,139,250,0.1); border-color: #4c1d95; color: var(--purple); }
+.btn-purple:hover { background: rgba(167,139,250,0.18); }
+.btn-sm { padding: 4px 9px; font-size: 0.72rem; }
+.btn-lg { padding: 10px 20px; font-size: 0.9rem; }
+.btn-block { width: 100%; justify-content: center; }
+
+/* ── Actions column dropdown ───────────────────────────────── */
+.actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ── Modal ─────────────────────────────────────────────────── */
+.modal-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 28px;
+  width: 100%;
+  max-width: 440px;
+  margin: 16px;
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+.modal-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.modal label {
+  display: block;
+  font-size: 0.75rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 6px;
+  margin-top: 14px;
+}
+.modal input, .modal select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.modal input:focus, .modal select:focus { border-color: var(--accent2); }
+.modal-footer { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+
+/* ── Jobs panel ────────────────────────────────────────────── */
+.jobs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.job-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s;
+}
+.job-card:hover { border-color: var(--border2); }
+.job-icon { font-size: 1.6rem; }
+.job-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+.job-desc { font-size: 0.75rem; color: var(--muted); line-height: 1.5; flex: 1; }
+
+/* ── Prices grid ───────────────────────────────────────────── */
+.prices-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.price-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+}
+.price-card-title {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.form-group { margin-bottom: 12px; }
+.form-group label {
+  display: block;
+  font-size: 0.7rem;
+  font-family: var(--font-mono);
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 5px;
+}
+.form-group input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 11px;
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.form-group input:focus { border-color: var(--accent2); }
+
+/* ── Followups ─────────────────────────────────────────────── */
+.followup-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.followup-item:last-child { border-bottom: none; }
+.followup-info { flex: 1; min-width: 0; }
+.followup-biz { font-weight: 500; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.followup-meta { font-size: 0.72rem; color: var(--muted); font-family: var(--font-mono); }
+
+/* ── Referrals ─────────────────────────────────────────────── */
+.ref-code {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: var(--accent2);
+}
+
+/* ── Empty state ───────────────────────────────────────────── */
+.empty {
+  text-align: center;
+  padding: 48px 20px;
+  color: var(--muted);
+}
+.empty-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.empty-text { font-size: 0.85rem; }
+
+/* ── Divider ───────────────────────────────────────────────── */
+.divider {
+  height: 1px;
+  background: var(--border);
+  margin: 24px 0;
+}
+
+/* ── Scrollbar ─────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+
+/* ── Responsive ────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+  .content { padding: 16px; }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .mobile-menu-btn { display: flex !important; }
+  table { font-size: 0.75rem; }
+  th, td { padding: 8px 10px; }
+}
+.mobile-menu-btn {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  width: 34px; height: 34px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+/* ── Pkg icon colors ───────────────────────────────────────── */
+.pkg-starter  { color: var(--accent); }
+.pkg-business { color: var(--gold); }
+.pkg-premium  { color: var(--purple); }
 </style>
 </head>
 <body>
 
-<div class="nav">
-  <div class="nav-logo"><em>Catalog</em>Pro</div>
-  <div class="nav-badge">Admin Panel</div>
-  <div class="nav-links">
-    <a class="nav-link" href="/">← Site</a>
-    <a class="nav-link danger" href="/{{ secret }}/logout">Logout</a>
-  </div>
-</div>
+<div class="shell">
 
-<div class="main">
-
-{% with msgs = get_flashed_messages(with_categories=true) %}
-  {% for cat,msg in msgs %}
-  <div class="flash {{ cat }}">{{ msg }}</div>
-  {% endfor %}
-{% endwith %}
-
-<!-- Stats -->
-<div class="stats">
-  <div class="stat-card">
-    <div class="stat-label">Total revenue</div>
-    <div class="stat-val" style="color:var(--green)">KSh {{ '{:,}'.format(stats.revenue) }}</div>
-    <div class="stat-sub">All time · paid orders</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Paid orders</div>
-    <div class="stat-val">{{ stats.paid }}</div>
-    <div class="stat-sub">of {{ stats.total }} total</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Today's orders</div>
-    <div class="stat-val" style="color:var(--red)">{{ stats.today }}</div>
-    <div class="stat-sub">paid today</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-label">Pending payment</div>
-    <div class="stat-val" style="color:var(--gold)">{{ stats.total - stats.paid }}</div>
-    <div class="stat-sub">need follow-up</div>
-  </div>
-</div>
-
-<!-- Revenue chart -->
-<div class="chart-card">
-  <div class="card-hdr">
-    <div class="card-title">30-Day Revenue (KSh)</div>
-  </div>
-  <canvas id="revenueChart" height="80"></canvas>
-</div>
-
-<!-- Abandoned follow-ups -->
-{% if followups %}
-<div class="chart-card">
-  <div class="card-hdr">
-    <div class="card-title">⚠ Abandoned Orders — Need Follow-Up</div>
-  </div>
-  {% for o in followups %}
-  <div class="followup-card">
-    <div class="followup-info">
-      <h4>{{ o.business }}</h4>
-      <p>{{ o.phone }} · KSh {{ '{:,}'.format(o.amount) }} · {{ o.package }} · {{ o.created_at.strftime('%d %b, %H:%M') }}</p>
+  <!-- ── SIDEBAR ─────────────────────────────────────────── -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">CatalogPro</div>
+      <div class="logo-sub">Admin Console</div>
     </div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap">
-      <a class="btn-sm green" href="https://wa.me/254{{ o.phone.lstrip('0') }}?text=Hi%21+I+noticed+you+were+checking+out+CatalogPro+but+didn%27t+complete+your+order.+Need+any+help%3F+%F0%9F%98%8A" target="_blank">📲 WhatsApp</a>
-      <form action="/{{ secret }}/bypass-pay/{{ o.id }}" method="POST" class="inline-form">
-        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-        <input type="hidden" name="mpesa_ref" value="MANUAL">
-        <button class="btn-sm green" type="submit">✓ Mark paid</button>
-      </form>
-      <form action="/{{ secret }}/del/{{ o.id }}" method="POST" class="inline-form" onsubmit="return confirm('Delete {{ o.id }}?')">
-        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-        <button class="btn-sm danger" type="submit">✕</button>
-      </form>
-    </div>
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
-
-<!-- Pricing & offers -->
-<div class="chart-card">
-  <div class="card-hdr"><div class="card-title">Pricing & Offers</div></div>
-  <form action="/{{ secret }}/prices" method="POST">
-    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-    <div class="price-grid">
-      {% for key,pkg in packages.items() %}
-      <div class="price-pkg">
-        <div class="price-pkg-name">{{ pkg.label }}</div>
-        <label>Current price (KSh)</label>
-        <input type="number" name="price_{{ key }}" value="{{ pkg.price }}" min="1" max="99999">
-        <label>Offer: original price (0 = no offer)</label>
-        <input type="number" name="offer_orig_{{ key }}" value="{{ pkg.offer_orig or 0 }}" min="0">
-        <label>Offer label</label>
-        <input type="text" name="offer_label_{{ key }}" value="{{ pkg.offer_label or 'LIMITED OFFER' }}" placeholder="e.g. LAUNCH SPECIAL">
-        <label>Offer ends (datetime, blank = no countdown)</label>
-        <input type="datetime-local" name="offer_until_{{ key }}" value="{{ pkg.offer_until or '' }}">
+    <nav class="sidebar-nav">
+      <div class="nav-label">Overview</div>
+      <div class="nav-item active" onclick="showSection('overview', this)">
+        <span class="icon">📊</span> Dashboard
       </div>
-      {% endfor %}
+      <div class="nav-item" onclick="showSection('orders', this)">
+        <span class="icon">🧾</span> All Orders
+        <span style="margin-left:auto;background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:1px 7px;font-family:var(--font-mono);font-size:0.65rem;color:var(--muted)">{{ stats.total }}</span>
+      </div>
+      <div class="nav-label">Manage</div>
+      <div class="nav-item" onclick="showSection('followups', this)">
+        <span class="icon">🔔</span> Follow-ups
+      </div>
+      <div class="nav-item" onclick="showSection('referrals', this)">
+        <span class="icon">🔗</span> Referrals
+      </div>
+      <div class="nav-item" onclick="showSection('prices', this)">
+        <span class="icon">💰</span> Prices & Offers
+      </div>
+      <div class="nav-label">System</div>
+      <div class="nav-item" onclick="showSection('jobs', this)">
+        <span class="icon">⚙️</span> Jobs
+      </div>
+    </nav>
+    <div class="sidebar-footer">
+      <a href="{{ admin_url('admin_logout') }}">
+        <span>🚪</span> Sign out
+      </a>
     </div>
-    <button class="sav-btn" type="submit">Save pricing & offers</button>
-  </form>
-</div>
+  </aside>
 
-<!-- All orders table -->
-<div class="chart-card">
-  <div class="card-hdr">
-    <div class="card-title">All Orders</div>
-    <input type="text" id="search" placeholder="Search orders…" style="padding:7px 12px;border:1px solid var(--line);border-radius:7px;font-size:.8rem;outline:none;font-family:'DM Sans',sans-serif;width:220px">
-  </div>
-  <div class="tbl-wrap">
-    <table id="orders-tbl">
-      <thead>
-        <tr>
-          <th>Order ID</th><th>Business</th><th>Package</th>
-          <th>Amount</th><th>Phone</th><th>Status</th>
-          <th>Date</th><th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for o in orders %}
-        <tr>
-          <td><code style="font-size:.75rem;color:var(--mid)">{{ o.id }}</code></td>
-          <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.business }}</td>
-          <td>{{ packages[o.package].label if o.package in packages else o.package }}</td>
-          <td>KSh {{ '{:,}'.format(o.amount) }}</td>
-          <td>{{ o.phone }}</td>
-          <td>
-            {% if o.status == 'paid' %}<span class="badge badge-paid">✓ Paid</span>
-            {% elif o.status == 'failed' %}<span class="badge badge-failed">✕ Failed</span>
-            {% elif o.status == 'awaiting_payment' %}<span class="badge badge-awaiting">⏳ Awaiting</span>
-            {% else %}<span class="badge badge-pending">Pending</span>{% endif %}
-          </td>
-          <td style="color:var(--pale)">{{ o.created_at.strftime('%d %b %y') }}</td>
-          <td>
-            <div style="display:flex;gap:5px;flex-wrap:wrap">
-              {% if o.status == 'paid' and o.catalog_file %}
-              <a class="btn-sm" href="/{{ secret }}/dl/{{ o.id }}">↓ PDF</a>
-              {% endif %}
-              {% if o.status != 'paid' %}
-              <form action="/{{ secret }}/bypass-pay/{{ o.id }}" method="POST" class="inline-form">
-                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-                <input type="hidden" name="mpesa_ref" value="MANUAL">
-                <button class="btn-sm green" type="submit" title="Mark as paid">✓ Pay</button>
-              </form>
-              <form action="/{{ secret }}/simulate-stk/{{ o.id }}" method="POST" class="inline-form">
-                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-                <button class="btn-sm" type="submit" title="Simulate STK">⚡ STK</button>
-              </form>
-              {% endif %}
-              <form action="/{{ secret }}/del/{{ o.id }}" method="POST" class="inline-form" onsubmit="return confirm('Delete order {{ o.id }}?')">
-                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-                <button class="btn-sm danger" type="submit">✕</button>
-              </form>
+  <!-- ── MAIN ────────────────────────────────────────────── -->
+  <div class="main">
+
+    <!-- Topbar -->
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+        <div class="topbar-title" id="page-title">Dashboard</div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-time" id="clock">—</div>
+        <a href="{{ admin_url('admin_logout') }}" class="btn btn-ghost btn-sm">Sign out</a>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <!-- Flash messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-stack">
+            {% for cat, msg in messages %}
+              <div class="flash {{ cat }}">
+                <span>{{ msg }}</span>
+                <button class="flash-close" onclick="this.parentElement.remove()">✕</button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <!-- ════════════════════════════════════════════════ -->
+      <!-- SECTION: OVERVIEW -->
+      <!-- ════════════════════════════════════════════════ -->
+      <div class="section active" id="section-overview">
+
+        <!-- Stat Cards -->
+        <div class="stats-grid">
+          <div class="stat-card green">
+            <div class="stat-icon">💰</div>
+            <div class="stat-label">Total Revenue</div>
+            <div class="stat-value">{{ "{:,}".format(stats.revenue) }}</div>
+            <div class="stat-sub">KSh — all time</div>
+          </div>
+          <div class="stat-card cyan">
+            <div class="stat-icon">✅</div>
+            <div class="stat-label">Paid Orders</div>
+            <div class="stat-value">{{ stats.paid }}</div>
+            <div class="stat-sub">of {{ stats.total }} total</div>
+          </div>
+          <div class="stat-card orange">
+            <div class="stat-icon">📅</div>
+            <div class="stat-label">Today's Sales</div>
+            <div class="stat-value">{{ stats.today }}</div>
+            <div class="stat-sub">orders today</div>
+          </div>
+          <div class="stat-card purple">
+            <div class="stat-icon">🧾</div>
+            <div class="stat-label">All Orders</div>
+            <div class="stat-value">{{ stats.total }}</div>
+            <div class="stat-sub">incl. pending & failed</div>
+          </div>
+        </div>
+
+        <!-- Revenue Chart -->
+        <div class="chart-card">
+          <div class="card-header">
+            <div class="card-title">30-Day Revenue</div>
+            <div class="card-badge">KSh</div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="revenueChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Recent Orders (last 10) -->
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="card-title">Recent Orders</div>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('orders', document.querySelector('.nav-item:nth-child(2)'))">View all →</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="recent-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Business</th>
+                  <th>Package</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for o in orders[:10] %}
+                <tr>
+                  <td class="mono">{{ o.id }}</td>
+                  <td>{{ o.business }}</td>
+                  <td>
+                    <span class="pkg-{{ o.package }}">
+                      {% if o.package == 'starter' %}⚡{% elif o.package == 'business' %}🌟{% else %}💎{% endif %}
+                      {{ o.package|title }}
+                    </span>
+                  </td>
+                  <td class="mono">KSh {{ "{:,}".format(o.amount) }}</td>
+                  <td>
+                    {% if o.status == 'paid' %}
+                      <span class="badge badge-paid">● paid</span>
+                    {% elif o.status == 'pending' %}
+                      <span class="badge badge-pending">● pending</span>
+                    {% elif o.status == 'awaiting_payment' %}
+                      <span class="badge badge-await">● awaiting</span>
+                    {% elif o.status == 'failed' %}
+                      <span class="badge badge-failed">● failed</span>
+                    {% else %}
+                      <span class="badge badge-error">● {{ o.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="mono text-muted">{{ o.created_at.strftime('%d %b %H:%M') if o.created_at else '—' }}</td>
+                  <td>
+                    <div class="actions-cell">
+                      {% if o.status != 'paid' %}
+                        <button class="btn btn-green btn-sm" onclick="openBypass('{{ o.id }}')">✓ Pay</button>
+                      {% endif %}
+                      {% if o.status == 'paid' %}
+                        <a href="{{ admin_url('admin_download', order_id=o.id) }}" class="btn btn-cyan btn-sm">⬇ PDF</a>
+                      {% endif %}
+                      <button class="btn btn-red btn-sm" onclick="openDelete('{{ o.id }}', '{{ o.business|e }}')">✕</button>
+                    </div>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="7"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No orders yet</div></div></td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div><!-- /overview -->
+
+      <!-- ════════════════════════════════════════════════ -->
+      <!-- SECTION: ALL ORDERS -->
+      <!-- ════════════════════════════════════════════════ -->
+      <div class="section" id="section-orders">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="card-title">All Orders</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+              <div class="search-box">
+                <span style="color:var(--muted)">🔍</span>
+                <input type="text" placeholder="Search business, phone, ID…" id="orderSearch" oninput="filterOrders()">
+              </div>
+              <div class="filter-row" id="statusFilters">
+                <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+                <button class="filter-btn" onclick="setFilter('paid',this)">Paid</button>
+                <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
+                <button class="filter-btn" onclick="setFilter('awaiting_payment',this)">Awaiting</button>
+                <button class="filter-btn" onclick="setFilter('failed',this)">Failed</button>
+              </div>
             </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+          </div>
+          <div style="overflow-x:auto">
+            <table id="full-orders-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Business</th>
+                  <th>Phone</th>
+                  <th>Email</th>
+                  <th>Pkg</th>
+                  <th>Amount</th>
+                  <th>Discount</th>
+                  <th>M-Pesa Ref</th>
+                  <th>Status</th>
+                  <th>Email Sent</th>
+                  <th>Follow-up</th>
+                  <th>Created</th>
+                  <th>Paid At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="orders-tbody">
+                {% for o in orders %}
+                <tr data-status="{{ o.status }}" data-search="{{ o.business|lower }} {{ o.phone }} {{ o.id|lower }} {{ (o.email or '')|lower }}">
+                  <td class="mono">{{ o.id }}</td>
+                  <td style="max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.business }}</td>
+                  <td class="mono">{{ o.phone }}</td>
+                  <td class="text-muted" style="max-width:120px;overflow:hidden;text-overflow:ellipsis">{{ o.email or '—' }}</td>
+                  <td>
+                    <span class="pkg-{{ o.package }}">
+                      {% if o.package == 'starter' %}⚡{% elif o.package == 'business' %}🌟{% else %}💎{% endif %}
+                      {{ o.package|title }}
+                    </span>
+                  </td>
+                  <td class="mono">{{ "{:,}".format(o.amount) }}</td>
+                  <td class="mono {% if o.discount %}text-muted{% endif %}">{% if o.discount %}−{{ o.discount }}{% else %}—{% endif %}</td>
+                  <td class="mono text-muted">{{ o.mpesa_code or '—' }}</td>
+                  <td>
+                    {% if o.status == 'paid' %}
+                      <span class="badge badge-paid">● paid</span>
+                    {% elif o.status == 'pending' %}
+                      <span class="badge badge-pending">● pending</span>
+                    {% elif o.status == 'awaiting_payment' %}
+                      <span class="badge badge-await">● awaiting</span>
+                    {% elif o.status == 'failed' %}
+                      <span class="badge badge-failed">● failed</span>
+                    {% else %}
+                      <span class="badge badge-error">{{ o.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td>{% if o.email_sent %}<span style="color:var(--accent)">✓</span>{% else %}<span style="color:var(--muted)">—</span>{% endif %}</td>
+                  <td>{% if o.follow_up_sent %}<span style="color:var(--warn)">✓</span>{% else %}<span style="color:var(--muted)">—</span>{% endif %}</td>
+                  <td class="mono text-muted">{{ o.created_at.strftime('%d %b %y %H:%M') if o.created_at else '—' }}</td>
+                  <td class="mono text-muted">{{ o.paid_at.strftime('%d %b %y %H:%M') if o.paid_at else '—' }}</td>
+                  <td>
+                    <div class="actions-cell">
+                      {% if o.status != 'paid' %}
+                        <button class="btn btn-green btn-sm" onclick="openBypass('{{ o.id }}')">✓ Pay</button>
+                        <button class="btn btn-orange btn-sm" onclick="openSimulate('{{ o.id }}', '{{ o.business|e }}')">▶ STK</button>
+                      {% endif %}
+                      {% if o.status == 'paid' %}
+                        <a href="{{ admin_url('admin_download', order_id=o.id) }}" class="btn btn-cyan btn-sm">⬇ PDF</a>
+                      {% endif %}
+                      <button class="btn btn-red btn-sm" onclick="openDelete('{{ o.id }}', '{{ o.business|e }}')">✕</button>
+                    </div>
+                  </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="14"><div class="empty"><div class="empty-icon">📭</div><div class="empty-text">No orders yet</div></div></td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          <div style="padding:12px 20px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)" id="orders-count">
+            Showing {{ orders|length }} orders
+          </div>
+        </div>
+      </div><!-- /orders -->
+
+      <!-- ════════════════════════════════════════════════ -->
+      <!-- SECTION: FOLLOW-UPS -->
+      <!-- ════════════════════════════════════════════════ -->
+      <div class="section" id="section-followups">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="card-title">🔔 Abandoned Orders — Follow-up Queue</div>
+            <span class="card-badge">{{ followups|length }} pending</span>
+          </div>
+          {% if followups %}
+            {% for o in followups %}
+            <div class="followup-item">
+              <div class="followup-info">
+                <div class="followup-biz">{{ o.business }}</div>
+                <div class="followup-meta">
+                  {{ o.phone }} &nbsp;·&nbsp;
+                  {{ o.package|title }} &nbsp;·&nbsp;
+                  KSh {{ "{:,}".format(o.amount) }} &nbsp;·&nbsp;
+                  <span class="mono">{{ o.id }}</span> &nbsp;·&nbsp;
+                  {{ o.created_at.strftime('%d %b %H:%M') if o.created_at else '' }}
+                </div>
+              </div>
+              <div class="actions-cell">
+                <button class="btn btn-green btn-sm" onclick="openBypass('{{ o.id }}')">✓ Mark Paid</button>
+                <button class="btn btn-orange btn-sm" onclick="openSimulate('{{ o.id }}', '{{ o.business|e }}')">▶ Retry STK</button>
+                <button class="btn btn-red btn-sm" onclick="openDelete('{{ o.id }}', '{{ o.business|e }}')">✕ Remove</button>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <div class="empty">
+              <div class="empty-icon">🎉</div>
+              <div class="empty-text">No abandoned orders — all clear!</div>
+            </div>
+          {% endif %}
+        </div>
+      </div><!-- /followups -->
+
+      <!-- ════════════════════════════════════════════════ -->
+      <!-- SECTION: REFERRALS -->
+      <!-- ════════════════════════════════════════════════ -->
+      <div class="section" id="section-referrals">
+        <div class="table-card">
+          <div class="table-toolbar">
+            <div class="card-title">🔗 Referral Codes</div>
+          </div>
+          {% set referrals = namespace(items=[]) %}
+          {# Pull referrals from orders that used codes #}
+          <div style="overflow-x:auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Code</th>
+                  <th>Owner Phone</th>
+                  <th>Owner Name</th>
+                  <th>Discount Given</th>
+                  <th>Times Used</th>
+                  <th>Created</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ref in packages.values() if false %}{% endfor %}
+                {# Iterate via orders referral codes summary #}
+                {% set seen = [] %}
+                {% for o in orders if o.referral_code and o.referral_code not in seen %}
+                  {% if seen.append(o.referral_code) %}{% endif %}
+                  <tr>
+                    <td><span class="ref-code">{{ o.referral_code }}</span></td>
+                    <td class="mono">{{ o.phone }}</td>
+                    <td>{{ o.business }}</td>
+                    <td class="mono">KSh {{ o.discount }}</td>
+                    <td>
+                      <span style="font-family:var(--font-mono);color:var(--accent)">
+                        {{ orders | selectattr('referral_code','equalto', o.referral_code) | list | length }}
+                      </span>
+                    </td>
+                    <td class="mono text-muted">{{ o.created_at.strftime('%d %b %y') if o.created_at else '—' }}</td>
+                  </tr>
+                {% else %}
+                  <tr><td colspan="6"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No referral codes used yet</div></div></td></tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /referrals -->
+
+      <!-- ════════════════════════════════════════════════ -->
+      <!-- SECTION: PRICES & OFFERS -->
+      <!-- ════════════════════════════════════════════════ -->
+      <div class="section" id="section-prices">
+        <form method="POST" action="{{ admin_url('admin_update_prices') }}">
+          <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+          <div class="prices-grid">
+            {% for key, pkg in packages.items() %}
+            <div class="price-card">
+              <div class="price-card-title">
+                <span class="pkg-{{ key }}">
+                  {% if key == 'starter' %}⚡{% elif key == 'business' %}🌟{% else %}💎{% endif %}
+                </span>
+                {{ pkg.name if pkg.name else key|title }}
+              </div>
+
+              <div class="form-group">
+                <label>Price (KSh)</label>
+                <input type="number" name="price_{{ key }}" value="{{ pkg.price }}" min="1" max="99999">
+              </div>
+              <div class="form-group">
+                <label>Offer Original Price (0 = no offer)</label>
+                <input type="number" name="offer_orig_{{ key }}" value="{{ pkg.offer_orig or 0 }}" min="0">
+              </div>
+              <div class="form-group">
+                <label>Offer Label</label>
+                <input type="text" name="offer_label_{{ key }}" value="{{ pkg.offer_label or '' }}" placeholder="LIMITED TIME OFFER">
+              </div>
+              <div class="form-group">
+                <label>Offer Until (e.g. Dec 31)</label>
+                <input type="text" name="offer_until_{{ key }}" value="{{ pkg.offer_until or '' }}" placeholder="optional deadline text">
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+
+          <button type="submit" class="btn btn-green btn-lg">💾 Save Prices & Offers</button>
+        </form>
+      </div><!-- /prices -->
+
+      <!-- ════════════════════════════════════════════════ -->
+      <!-- SECTION: JOBS -->
+      <!-- ════════════════════════════════════════════════ -->
+      <div class="section" id="section-jobs">
+
+        <div style="margin-bottom:20px">
+          <div class="card-title" style="margin-bottom:6px">⚙️ Manual Jobs</div>
+          <div style="font-size:0.8rem;color:var(--muted)">
+            Scheduled tasks are not available on free PythonAnywhere. Run these manually as needed.
+          </div>
+        </div>
+
+        <div class="jobs-grid">
+
+          <div class="job-card">
+            <div class="job-icon">🔔</div>
+            <div class="job-title">Flag Abandoned Orders</div>
+            <div class="job-desc">Marks pending orders older than 45 minutes as needing follow-up. Check the Follow-ups tab after running.</div>
+            <form method="POST" action="{{ admin_url('admin_job_abandoned') }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-orange btn-block" onclick="return confirm('Run abandoned order check now?')">▶ Run Now</button>
+            </form>
+          </div>
+
+          <div class="job-card">
+            <div class="job-icon">📧</div>
+            <div class="job-title">Send Daily Summary</div>
+            <div class="job-desc">Emails today's orders, revenue total, and pending count to the admin email address.</div>
+            <form method="POST" action="{{ admin_url('admin_job_daily_summary') }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-cyan btn-block" onclick="return confirm('Send daily summary email now?')">▶ Run Now</button>
+            </form>
+          </div>
+
+          <div class="job-card">
+            <div class="job-icon">💾</div>
+            <div class="job-title">Backup Database</div>
+            <div class="job-desc">Dumps MySQL to a timestamped .sql file in the backups folder. Keeps the 5 most recent backups.</div>
+            <form method="POST" action="{{ admin_url('admin_job_backup') }}">
+              <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+              <button type="submit" class="btn btn-purple btn-block" onclick="return confirm('Run database backup now?')">▶ Run Now</button>
+            </form>
+          </div>
+
+        </div>
+
+        <!-- DB Migration hint -->
+        <div class="table-card" style="padding:20px">
+          <div class="card-title" style="margin-bottom:10px">🗄️ Database Migrations (Flask-Migrate)</div>
+          <div style="font-size:0.8rem;color:var(--muted);line-height:1.8">
+            Run these in a PythonAnywhere Bash console when you change <code style="font-family:var(--font-mono);color:var(--accent2)">models.py</code>:
+          </div>
+          <div style="margin-top:12px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:14px;font-family:var(--font-mono);font-size:0.75rem;color:var(--accent);line-height:2">
+            <div><span style="color:var(--muted)"># First time only:</span></div>
+            <div>flask --app app db init</div>
+            <div>flask --app app db migrate -m "initial"</div>
+            <div>flask --app app db upgrade</div>
+            <div style="margin-top:8px"><span style="color:var(--muted)"># After every models.py change:</span></div>
+            <div>flask --app app db migrate -m "describe change"</div>
+            <div>flask --app app db upgrade</div>
+          </div>
+        </div>
+
+      </div><!-- /jobs -->
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ── MODALS ──────────────────────────────────────────────── -->
+
+<!-- Bypass Pay Modal -->
+<div class="modal-backdrop" id="modal-bypass">
+  <div class="modal">
+    <div class="modal-title">✓ Mark Order as Paid</div>
+    <form method="POST" id="bypass-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Order ID</label>
+      <input type="text" id="bypass-order-id-display" disabled>
+      <label>M-Pesa Reference</label>
+      <input type="text" name="mpesa_ref" placeholder="e.g. QGH7X2KA or MANUAL" value="MANUAL-BYPASS">
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-bypass')">Cancel</button>
+        <button type="submit" class="btn btn-green">✓ Confirm & Generate PDF</button>
+      </div>
+    </form>
   </div>
 </div>
 
-</div><!-- /main -->
+<!-- Simulate STK Modal -->
+<div class="modal-backdrop" id="modal-simulate">
+  <div class="modal">
+    <div class="modal-title">▶ Simulate STK Push</div>
+    <p style="font-size:0.82rem;color:var(--muted);margin-bottom:4px">Triggers PDF generation as if payment was received. For testing only.</p>
+    <form method="POST" id="simulate-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <label>Order</label>
+      <input type="text" id="simulate-order-display" disabled>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-simulate')">Cancel</button>
+        <button type="submit" class="btn btn-orange">▶ Simulate Payment</button>
+      </div>
+    </form>
+  </div>
+</div>
 
+<!-- Delete Modal -->
+<div class="modal-backdrop" id="modal-delete">
+  <div class="modal">
+    <div class="modal-title">✕ Delete Order</div>
+    <p style="font-size:0.85rem;color:var(--muted)">
+      Delete order for <strong id="delete-biz-name" style="color:var(--text)"></strong>? This cannot be undone.
+    </p>
+    <form method="POST" id="delete-form">
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modal-delete')">Cancel</button>
+        <button type="submit" class="btn btn-red">✕ Delete Permanently</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ── SCRIPTS ─────────────────────────────────────────────── -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script>
-// Revenue chart
+// ── Clock ─────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('clock').textContent =
+    now.toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+updateClock(); setInterval(updateClock, 1000);
+
+// ── Section navigation ─────────────────────────────────────────
+const pageTitles = {
+  overview: 'Dashboard', orders: 'All Orders',
+  followups: 'Follow-ups', referrals: 'Referrals',
+  prices: 'Prices & Offers', jobs: 'Jobs'
+};
+function showSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = pageTitles[name] || name;
+}
+
+// ── Sidebar toggle (mobile) ───────────────────────────────────
+function toggleSidebar() {
+  const s = document.getElementById('sidebar');
+  s.style.display = s.style.display === 'flex' ? 'none' : 'flex';
+}
+
+// ── Revenue Chart ──────────────────────────────────────────────
+const labels = {{ chart_labels | tojson }};
+const data   = {{ chart_data   | tojson }};
 const ctx = document.getElementById('revenueChart').getContext('2d');
+const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+gradient.addColorStop(0, 'rgba(74,222,128,0.3)');
+gradient.addColorStop(1, 'rgba(74,222,128,0)');
 new Chart(ctx, {
-  type: 'bar',
+  type: 'line',
   data: {
-    labels: {{ chart_labels | tojson }},
+    labels,
     datasets: [{
-      label: 'Revenue (KSh)',
-      data: {{ chart_data | tojson }},
-      backgroundColor: 'rgba(194,59,38,.15)',
-      borderColor: '#c23b26',
+      data,
+      borderColor: '#4ade80',
+      backgroundColor: gradient,
       borderWidth: 2,
-      borderRadius: 5,
-      hoverBackgroundColor: 'rgba(194,59,38,.3)',
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      pointBackgroundColor: '#4ade80',
+      tension: 0.4,
+      fill: true,
     }]
   },
   options: {
     responsive: true,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        callbacks: {
-          label: ctx => `KSh ${ctx.parsed.y.toLocaleString()}`
-        }
-      }
-    },
+    maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: {
+      backgroundColor: '#1c2030',
+      borderColor: '#252a3a',
+      borderWidth: 1,
+      titleColor: '#6b7394',
+      bodyColor: '#e8eaf2',
+      callbacks: { label: ctx => ' KSh ' + ctx.parsed.y.toLocaleString() }
+    }},
     scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: '#e8e2d9' },
-        ticks: {
-          font: { family: "'DM Sans', sans-serif", size: 11 },
-          callback: v => 'KSh ' + v.toLocaleString()
-        }
-      },
-      x: {
-        grid: { display: false },
-        ticks: {
-          font: { family: "'DM Sans', sans-serif", size: 10 },
-          maxRotation: 45
-        }
-      }
+      x: { grid: { color: '#252a3a' }, ticks: { color: '#6b7394', font: { family: 'DM Mono', size: 10 }, maxTicksLimit: 10 } },
+      y: { grid: { color: '#252a3a' }, ticks: { color: '#6b7394', font: { family: 'DM Mono', size: 10 }, callback: v => 'KSh ' + v.toLocaleString() } }
     }
   }
 });
 
-// Order search
-document.getElementById('search').addEventListener('input', function() {
-  const q = this.value.toLowerCase();
-  document.querySelectorAll('#orders-tbl tbody tr').forEach(row => {
-    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+// ── Order filters ──────────────────────────────────────────────
+let activeFilter = 'all';
+function setFilter(status, btn) {
+  activeFilter = status;
+  document.querySelectorAll('#statusFilters .filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterOrders();
+}
+function filterOrders() {
+  const q = document.getElementById('orderSearch').value.toLowerCase();
+  const rows = document.querySelectorAll('#orders-tbody tr');
+  let visible = 0;
+  rows.forEach(row => {
+    const matchSearch = !q || (row.dataset.search || '').includes(q);
+    const matchStatus = activeFilter === 'all' || row.dataset.status === activeFilter;
+    const show = matchSearch && matchStatus;
+    row.style.display = show ? '' : 'none';
+    if (show) visible++;
   });
+  const c = document.getElementById('orders-count');
+  if (c) c.textContent = `Showing ${visible} of ${rows.length} orders`;
+}
+
+// ── Modals ─────────────────────────────────────────────────────
+function openBypass(orderId) {
+  document.getElementById('bypass-order-id-display').value = orderId;
+  document.getElementById('bypass-form').action = '/{{ secret }}/bypass-pay/' + orderId;
+  document.getElementById('modal-bypass').classList.add('open');
+}
+function openSimulate(orderId, biz) {
+  document.getElementById('simulate-order-display').value = orderId + ' — ' + biz;
+  document.getElementById('simulate-form').action = '/{{ secret }}/simulate-stk/' + orderId;
+  document.getElementById('modal-simulate').classList.add('open');
+}
+function openDelete(orderId, biz) {
+  document.getElementById('delete-biz-name').textContent = biz;
+  document.getElementById('delete-form').action = '/{{ secret }}/del/' + orderId;
+  document.getElementById('modal-delete').classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(b => {
+  b.addEventListener('click', e => { if (e.target === b) b.classList.remove('open'); });
 });
+// ESC to close
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-backdrop.open').forEach(b => b.classList.remove('open'));
+});
+
+// ── Auto-dismiss flashes ───────────────────────────────────────
+setTimeout(() => {
+  document.querySelectorAll('.flash').forEach(f => f.style.opacity = '0');
+  setTimeout(() => document.querySelectorAll('.flash').forEach(f => f.remove()), 400);
+}, 5000);
 </script>
 </body>
 </html>
