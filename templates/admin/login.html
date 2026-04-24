@@ -2,33 +2,51 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin — CatalogPro</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<title>Admin Login — CatalogPro</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+:root{--ink:#131211;--red:#c23b26;--line:#e8e2d9;--bg:#faf8f3}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:#fafaf8;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
-.card{background:#fff;border:1px solid #e4e0da;border-radius:12px;padding:40px 36px;max-width:360px;width:100%}
-h1{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:4px}
-.sub{font-size:0.82rem;color:#888;margin-bottom:28px}
-label{display:block;font-size:0.78rem;color:#666;margin-bottom:5px;margin-top:16px}
-input{width:100%;background:#fafaf8;border:1px solid #e4e0da;border-radius:7px;padding:11px 13px;font-size:0.9rem;outline:none;color:#111}
-input:focus{border-color:#111;background:#fff}
-.btn{width:100%;margin-top:24px;padding:13px;background:#111;color:#fff;border:none;border-radius:7px;font-size:0.9rem;font-weight:500;cursor:pointer}
-.btn:hover{background:#333}
-.err{background:#fdf2f2;border:1px solid #f5c6c6;color:#c0392b;border-radius:7px;padding:10px 14px;font-size:0.82rem;margin-top:16px}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+.box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:40px 36px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.07)}
+.logo{font-family:'Cormorant Garamond',serif;font-size:1.4rem;font-weight:700;text-align:center;margin-bottom:6px}
+.logo em{color:var(--red);font-style:normal}
+.subtitle{font-size:.78rem;color:#a09890;text-align:center;margin-bottom:28px}
+label{display:block;font-size:.76rem;color:#6b6460;margin-bottom:6px;margin-top:16px}
+label:first-of-type{margin-top:0}
+input{width:100%;background:var(--bg);border:1.5px solid var(--line);border-radius:9px;padding:12px 14px;font-family:'DM Sans',sans-serif;font-size:.9rem;color:var(--ink);outline:none;transition:border-color .2s}
+input:focus{border-color:var(--ink);background:#fff}
+.submit{width:100%;margin-top:22px;padding:14px;background:var(--ink);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.92rem;font-weight:500;cursor:pointer;transition:background .2s}
+.submit:hover{background:#2a2520}
+.err{background:#fdf2f2;border:1px solid #f5c6c6;border-left:3px solid var(--red);border-radius:8px;padding:10px 14px;font-size:.82rem;color:var(--red);margin-bottom:16px}
+.locked{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;border-radius:8px;padding:14px;font-size:.84rem;color:#78350f;text-align:center}
 </style>
 </head>
 <body>
-<div class="card">
-  <h1>Admin</h1>
-  <p class="sub">CatalogPro dashboard</p>
+<div class="box">
+  <div class="logo"><em>Catalog</em>Pro</div>
+  <div class="subtitle">Admin Access</div>
+
+  {% with msgs = get_flashed_messages() %}
+    {% for m in msgs %}<div class="err">{{ m }}</div>{% endfor %}
+  {% endwith %}
+
+  {% if locked %}
+  <div class="locked">
+    🔒 Too many failed attempts.<br>
+    Please wait {{ remaining }} minutes before trying again.
+  </div>
+  {% else %}
   <form method="POST">
     <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-    <label>Username</label><input type="text" name="username" autofocus>
-    <label>Password</label><input type="password" name="password">
-    <button class="btn" type="submit">Sign in</button>
+    <label>Username</label>
+    <input type="text" name="username" required autofocus autocomplete="username">
+    <label>Password</label>
+    <input type="password" name="password" required autocomplete="current-password">
+    <button class="submit" type="submit">Sign in →</button>
   </form>
-  {% with msgs = get_flashed_messages() %}{% for m in msgs %}<div class="err">{{ m }}</div>{% endfor %}{% endwith %}
+  {% endif %}
 </div>
 </body>
 </html>
+

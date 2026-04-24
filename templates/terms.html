@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Terms of Service — CatalogPro{% endblock %}
+{% block topbadge %}<span class="top-badge">Legal</span>{% endblock %}
+{% block content %}
+<div style="max-width:640px">
+  <div style="margin-bottom:24px">
+    <div style="font-size:.68rem;font-weight:600;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px"><span style="width:20px;height:1px;background:var(--red);display:inline-block"></span>Legal</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;margin-bottom:8px">Terms of Service</h1>
+    <p style="font-size:.82rem;color:var(--pale)">Last updated: January 2025</p>
+  </div>
+
+  {% for heading, body in [
+    ("1. Acceptance of Terms",
+     "By using CatalogPro (catalogpro.co.ke), you agree to these Terms of Service. If you do not agree, please do not use the service. These terms apply to all users including businesses and individuals placing orders."),
+    ("2. The Service",
+     "CatalogPro is a web-based service that allows Kenyan businesses to generate professional PDF product catalogs. You provide your business information and products, and we generate a PDF catalog for download and sharing. The service is provided on a pay-per-catalog basis with no ongoing subscription."),
+    ("3. Payment & Refunds",
+     "All payments are processed via M-Pesa. Payment is required before your final catalog PDF is delivered. We offer a free partial preview before payment. Due to the digital nature of the product, we do not offer refunds once a catalog PDF has been successfully generated and delivered. If you experience a technical issue preventing delivery, contact us within 24 hours and we will resolve it or issue a refund at our discretion."),
+    ("4. User Content",
+     "You retain ownership of all content you provide including business names, product descriptions, and images. By submitting content, you grant CatalogPro a limited license to use it solely for generating your catalog. You are responsible for ensuring you have the right to use all images and content you submit. Do not upload copyrighted images you do not own."),
+    ("5. Prohibited Use",
+     "You may not use CatalogPro to create catalogs for illegal products or services, including but not limited to counterfeit goods, illegal drugs, weapons, or stolen merchandise. We reserve the right to refuse service and cancel orders at our sole discretion."),
+    ("6. Intellectual Property",
+     "The CatalogPro platform, templates, and design system are proprietary. Your generated PDF catalog is yours to use freely for your business. You may not resell or redistribute the platform itself."),
+    ("7. Limitation of Liability",
+     "CatalogPro is provided 'as is'. We are not liable for any indirect, incidental, or consequential damages arising from use of the service. Our total liability shall not exceed the amount you paid for your specific order."),
+    ("8. Service Availability",
+     "We aim for high availability but do not guarantee uninterrupted service. Scheduled maintenance will be communicated in advance where possible. M-Pesa service availability is subject to Safaricom's infrastructure."),
+    ("9. Governing Law",
+     "These terms are governed by the laws of the Republic of Kenya. Any disputes shall be subject to the jurisdiction of Kenyan courts."),
+    ("10. Changes to Terms",
+     "We reserve the right to modify these terms at any time. Continued use of the service after changes constitutes acceptance of the new terms. We will post updates on this page with a revised date."),
+    ("11. Contact",
+     "For questions about these terms, contact us via WhatsApp at wa.me/" + config.SUPPORT_WHATSAPP + "."),
+  ] %}
+  <div class="card" style="margin-bottom:12px;padding:22px 24px">
+    <h3 style="font-size:.92rem;font-weight:600;margin-bottom:10px;color:var(--ink)">{{ heading }}</h3>
+    <p style="font-size:.85rem;color:var(--mid);line-height:1.85;font-weight:300">{{ body }}</p>
+  </div>
+  {% endfor %}
+
+  <div style="text-align:center;margin-top:12px">
+    <a href="/" style="font-size:.82rem;color:var(--pale);text-decoration:none">← Back to CatalogPro</a>
+    &nbsp;&nbsp;·&nbsp;&nbsp;
+    <a href="/privacy" style="font-size:.82rem;color:var(--pale);text-decoration:none">Privacy Policy</a>
+  </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Privacy Policy — CatalogPro{% endblock %}
+{% block topbadge %}<span class="top-badge">Legal</span>{% endblock %}
+{% block content %}
+<div style="max-width:640px">
+  <div style="margin-bottom:24px">
+    <div style="font-size:.68rem;font-weight:600;color:var(--red);letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px"><span style="width:20px;height:1px;background:var(--red);display:inline-block"></span>Legal</div>
+    <h1 style="font-family:'Cormorant Garamond',serif;font-size:2rem;font-weight:700;margin-bottom:8px">Privacy Policy</h1>
+    <p style="font-size:.82rem;color:var(--pale)">Last updated: January 2025</p>
+  </div>
+
+  {% for heading, body in [
+    ("1. Information We Collect",
+     "When you use CatalogPro, we collect information you provide directly — including your business name, phone number, email address, product details, and any images you upload. We also collect your M-Pesa transaction reference upon payment. We do not collect financial credentials such as M-Pesa PINs or bank account details."),
+    ("2. How We Use Your Information",
+     "We use your information solely to generate your PDF catalog, process your M-Pesa payment, deliver your catalog (including via email if provided), and provide customer support. We may also send a follow-up message if your order is incomplete. We do not use your data for advertising or sell it to third parties."),
+    ("3. M-Pesa Payments",
+     "Payments are processed via the Lipia M-Pesa API. CatalogPro does not store your M-Pesa PIN or any sensitive payment credentials. We only retain the M-Pesa transaction reference code (e.g., QJL3X9H4PW) for order verification purposes."),
+    ("4. Data Storage",
+     "Your order data is stored on a secure MySQL database hosted on PythonAnywhere servers. Uploaded product images and generated PDF catalogs are stored on the same server. We retain your data for as long as you need access to re-download your catalog."),
+    ("5. Sharing of Information",
+     "We do not sell, trade, or otherwise transfer your personally identifiable information to outside parties. We may share anonymised, aggregated statistics (such as total number of catalogs created) without identifying individual customers."),
+    ("6. Cookies",
+     "CatalogPro uses a single session cookie to remember your form progress and prevent duplicate orders. We do not use tracking cookies or third-party advertising cookies. No personal data is stored in cookies."),
+    ("7. Google AdSense",
+     "This site may display advertisements served by Google AdSense. Google uses cookies to serve ads based on your prior visits to this website or other websites. You may opt out of personalised advertising by visiting Google's Ads Settings. We do not share your order or personal data with Google."),
+    ("8. Your Rights",
+     "You have the right to request deletion of your personal data at any time. To request data deletion, contact us via WhatsApp with your phone number and order ID. We will remove your data within 7 business days."),
+    ("9. Children's Privacy",
+     "CatalogPro is intended for business owners and is not directed at children under 13. We do not knowingly collect data from children."),
+    ("10. Changes to This Policy",
+     "We may update this privacy policy from time to time. We will notify you of significant changes by posting the new policy on this page with an updated date."),
+    ("11. Contact Us",
+     "If you have questions about this privacy policy or how your data is handled, please contact us via WhatsApp at wa.me/" + config.SUPPORT_WHATSAPP + " or visit our website at felixkirui.pythonanywhere.com."),
+  ] %}
+  <div class="card" style="margin-bottom:12px;padding:22px 24px">
+    <h3 style="font-size:.92rem;font-weight:600;margin-bottom:10px;color:var(--ink)">{{ heading }}</h3>
+    <p style="font-size:.85rem;color:var(--mid);line-height:1.85;font-weight:300">{{ body }}</p>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
+

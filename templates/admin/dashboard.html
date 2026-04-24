@@ -2,412 +2,293 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Dashboard — CatalogPro Admin</title>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<title>Admin Dashboard — CatalogPro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-:root{--bg:#fafaf8;--ink:#111;--mid:#555;--pale:#999;--line:#e8e4df;--red:#c0392b;--gold:#a07830;--green:#15803d;--blue:#1d4ed8;--card:#fff}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
-nav{background:var(--card);border-bottom:1px solid var(--line);height:60px;display:flex;align-items:center;padding:0 32px;gap:14px;position:sticky;top:0;z-index:50}
-.logo{font-family:'Playfair Display',serif;font-size:1.1rem;font-weight:700}.logo span{color:var(--red)}
-.nav-badge{background:#f4f1ec;border:1px solid var(--line);color:var(--mid);font-size:0.7rem;padding:3px 10px;border-radius:99px}
-.nav-r{margin-left:auto;display:flex;gap:16px}
-.nav-r a{font-size:0.82rem;color:var(--pale);text-decoration:none}
-.nav-r a:hover{color:var(--ink)}
-.wrap{max-width:1280px;margin:0 auto;padding:32px 24px 80px}
-
-/* Flash */
-.flash{border-radius:8px;padding:11px 16px;margin-bottom:20px;font-size:0.85rem;display:flex;align-items:center;gap:8px}
-.flash-ok{background:#f0fdf4;border:1px solid #bbf7d0;color:var(--green)}
-.flash-err{background:#fdf2f2;border:1px solid #f5c6c6;color:var(--red)}
-
-/* Page title */
-.page-hd{margin-bottom:28px}
-.page-hd h1{font-family:'Playfair Display',serif;font-size:1.5rem;margin-bottom:3px}
-.page-hd p{font-size:0.84rem;color:var(--pale);font-weight:300}
-
-/* Stats row */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px}
-.sc{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 20px}
-.sc-l{font-size:0.68rem;color:var(--pale);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
-.sc-v{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700}
-
-/* Sections */
-.section{margin-bottom:36px}
-.sec-hd{font-size:0.72rem;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:1.5px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:20px;display:flex;align-items:center;gap:10px}
-.sec-hd-right{margin-left:auto;font-size:0.72rem;color:var(--pale);font-weight:400;text-transform:none;letter-spacing:0}
-
-/* Price + Offer editor grid */
-.pkg-editor-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.pec{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;position:relative}
-.pec-name{font-weight:600;font-size:0.95rem;margin-bottom:2px}
-.pec-sub{font-size:0.75rem;color:var(--pale);margin-bottom:18px}
-.field-label{font-size:0.72rem;color:var(--mid);margin-bottom:5px;margin-top:14px;display:block}
-.field-label:first-of-type{margin-top:0}
-.field-row{display:flex;align-items:center;gap:8px}
-.field-prefix{font-size:0.8rem;color:var(--mid);flex-shrink:0}
-.fi{width:100%;border:1px solid var(--line);border-radius:7px;padding:9px 12px;font-size:0.88rem;font-family:'Inter',sans-serif;color:var(--ink);background:#fafaf8;outline:none}
-.fi:focus{border-color:var(--ink);background:#fff}
-.offer-toggle{cursor:pointer;display:flex;align-items:center;gap:8px;font-size:0.78rem;color:var(--mid);margin-bottom:12px;user-select:none}
-.offer-toggle input{margin:0}
-.offer-fields{display:none}
-.offer-fields.show{display:block}
-.offer-preview{margin-top:10px;padding:8px 12px;background:#fdf9f0;border:1px solid #f0e0b0;border-radius:7px;font-size:0.78rem;color:var(--gold)}
-
-/* Save button */
-.save-btn{background:var(--ink);color:#fff;border:none;border-radius:7px;padding:11px 28px;font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:500;cursor:pointer;margin-top:20px;display:inline-flex;align-items:center;gap:6px}
-.save-btn:hover{background:#333}
-
-/* Orders table */
-.tbl-wrap{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.tbl-head{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
-.tbl-head-title{font-size:0.85rem;font-weight:600}
-.tbl-count{font-size:0.75rem;color:var(--pale);margin-left:auto}
-table{width:100%;border-collapse:collapse}
-th{font-size:0.67rem;color:var(--pale);text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap;background:#fafaf8}
-td{padding:10px 14px;font-size:0.82rem;border-bottom:1px solid #f2f0ee;vertical-align:middle}
-tr:last-child td{border:none}
-tr:hover td{background:#fafaf8}
-code{font-size:0.75rem;color:var(--pale);font-family:monospace}
-.status-b{display:inline-block;font-size:0.68rem;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
-.s-paid{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0}
-.s-pend{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
-.s-wait{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
-.s-err{background:#fdf2f2;color:var(--red);border:1px solid #f5c6c6}
-.pkb{font-size:0.68rem;padding:2px 8px;border-radius:99px;background:#f4f1ec;color:var(--mid)}
-
-/* Action buttons */
-.acts{display:flex;gap:5px;flex-wrap:wrap;align-items:center}
-.ab{padding:4px 9px;border-radius:5px;font-size:0.71rem;cursor:pointer;border:none;font-family:'Inter',sans-serif;text-decoration:none;display:inline-flex;align-items:center;gap:3px;white-space:nowrap;font-weight:500}
-.ab:hover{opacity:.8}
-.a-dl{background:#f0fdf4;color:var(--green)}
-.a-manual{background:#eff6ff;color:var(--blue)}
-.a-sim{background:#f5f3ff;color:#7c3aed}
-.a-del{background:#fdf2f2;color:var(--red)}
-
-/* Bypass modal */
-.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center}
-.modal-overlay.open{display:flex}
-.modal{background:var(--card);border-radius:14px;padding:32px;max-width:440px;width:100%;box-shadow:0 24px 64px rgba(0,0,0,.15)}
-.modal h3{font-family:'Playfair Display',serif;font-size:1.2rem;margin-bottom:6px}
-.modal p{font-size:0.84rem;color:var(--mid);margin-bottom:20px;line-height:1.6;font-weight:300}
-.modal-field label{display:block;font-size:0.75rem;color:var(--mid);margin-bottom:5px}
-.modal-field input{width:100%;border:1px solid var(--line);border-radius:7px;padding:10px 13px;font-size:0.9rem;font-family:'Inter',sans-serif;color:var(--ink);background:#fafaf8;outline:none;margin-bottom:16px}
-.modal-field input:focus{border-color:var(--ink);background:#fff}
-.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
-.mb-cancel{padding:9px 18px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--mid);font-family:'Inter',sans-serif;font-size:0.85rem;cursor:pointer}
-.mb-confirm{padding:9px 20px;border:none;border-radius:7px;background:var(--blue);color:#fff;font-family:'Inter',sans-serif;font-size:0.85rem;font-weight:500;cursor:pointer}
-.mb-confirm:hover{background:#1a44c0}
-.mb-sim{background:#7c3aed}
-.mb-sim:hover{background:#6d28d9}
-
-.empty-state{text-align:center;padding:56px 24px;color:var(--pale);font-size:0.88rem}
-.empty-state div{font-size:2rem;margin-bottom:12px}
-
-@media(max-width:800px){
-  .stats,.pkg-editor-grid{grid-template-columns:repeat(2,1fr)}
-  .hide-m{display:none}
-  td,th{padding:8px 10px}
-  nav{padding:0 16px}
-}
+:root{--bg:#f6f5f2;--ink:#131211;--mid:#6b6460;--pale:#a09890;--line:#e8e2d9;--red:#c23b26;--gold:#b8892a;--green:#15803d;--card:#fff;--nav:60px}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh}
+/* ── NAV ── */
+.nav{height:var(--nav);background:var(--ink);display:flex;align-items:center;padding:0 32px;gap:16px;position:sticky;top:0;z-index:100}
+.nav-logo{font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:#fff;font-weight:700}
+.nav-logo em{color:var(--red);font-style:normal}
+.nav-badge{background:rgba(255,255,255,.1);color:rgba(255,255,255,.6);font-size:.65rem;padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.1)}
+.nav-links{display:flex;gap:4px;margin-left:auto}
+.nav-link{padding:7px 14px;border-radius:7px;color:rgba(255,255,255,.6);font-size:.82rem;text-decoration:none;transition:all .2s}
+.nav-link:hover{background:rgba(255,255,255,.1);color:#fff}
+.nav-link.danger:hover{background:rgba(194,59,38,.3);color:#f87171}
+/* ── LAYOUT ── */
+.main{max-width:1360px;margin:0 auto;padding:28px 32px 60px}
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.stat-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px 22px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.stat-label{font-size:.68rem;color:var(--pale);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.stat-val{font-family:'Cormorant Garamond',serif;font-size:2.2rem;font-weight:700;line-height:1}
+.stat-sub{font-size:.73rem;color:var(--pale);margin-top:4px}
+/* ── CHART ── */
+.chart-card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px;margin-bottom:24px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.card-title{font-size:.78rem;font-weight:600;color:var(--ink);text-transform:uppercase;letter-spacing:.5px}
+/* ── PRICES FORM ── */
+.price-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:20px}
+.price-pkg{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:18px}
+.price-pkg-name{font-size:.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px;color:var(--mid)}
+.price-pkg label{display:block;font-size:.72rem;color:var(--pale);margin-bottom:5px;margin-top:12px}
+.price-pkg label:first-of-type{margin-top:0}
+.price-pkg input,.price-pkg textarea{width:100%;background:#fff;border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;font-family:'DM Sans',sans-serif;font-size:.84rem;color:var(--ink);outline:none;transition:border-color .2s}
+.price-pkg input:focus,.price-pkg textarea:focus{border-color:var(--ink)}
+/* ── TABLES ── */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+th{padding:10px 14px;text-align:left;font-size:.68rem;font-weight:600;color:var(--pale);text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid var(--line);white-space:nowrap}
+td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr:hover td{background:#faf8f4}
+.badge{display:inline-block;font-size:.68rem;font-weight:600;padding:3px 10px;border-radius:99px}
+.badge-paid{background:#f0fdf4;color:#15803d;border:1px solid #bbf7d0}
+.badge-pending{background:#fffbeb;color:#92400e;border:1px solid #fde68a}
+.badge-failed{background:#fdf2f2;color:#b91c1c;border:1px solid #f5c6c6}
+.badge-awaiting{background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe}
+.btn-sm{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border:1px solid var(--line);border-radius:6px;font-size:.72rem;font-family:'DM Sans',sans-serif;cursor:pointer;text-decoration:none;color:var(--mid);background:#fff;transition:all .2s;white-space:nowrap}
+.btn-sm:hover{border-color:var(--ink);color:var(--ink)}
+.btn-sm.danger:hover{border-color:var(--red);color:var(--red)}
+.btn-sm.green:hover{border-color:var(--green);color:var(--green)}
+/* ── FOLLOWUPS ── */
+.followup-card{background:#fffbeb;border:1px solid #fde68a;border-left:3px solid #f59e0b;border-radius:10px;padding:16px 18px;margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.followup-info h4{font-size:.88rem;font-weight:600;margin-bottom:3px}
+.followup-info p{font-size:.76rem;color:var(--mid)}
+/* ── INLINE FORM ── */
+.inline-form{display:inline}
+.sav-btn{width:100%;margin-top:16px;padding:12px;background:var(--ink);color:#fff;border:none;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:500;cursor:pointer;transition:background .2s}
+.sav-btn:hover{background:#2a2520}
+.flash{padding:10px 16px;border-radius:8px;margin-bottom:18px;font-size:.84rem;border-left:3px solid}
+.flash.success{background:#f0fdf4;border-color:#15803d;color:#15803d}
+.flash.error{background:#fdf2f2;border-color:var(--red);color:var(--red)}
+@media(max-width:900px){.stats{grid-template-columns:1fr 1fr}.price-grid{grid-template-columns:1fr}}
+@media(max-width:600px){.main{padding:16px}.stats{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
 
-<nav>
-  <div class="logo"><span>Catalog</span>Pro</div>
-  <span class="nav-badge">Admin Panel</span>
-  <div class="nav-r">
-    <a href="/" target="_blank">View site ↗</a>
-    <a href="{{ admin_url('admin_logout') }}">Sign out</a>
+<div class="nav">
+  <div class="nav-logo"><em>Catalog</em>Pro</div>
+  <div class="nav-badge">Admin Panel</div>
+  <div class="nav-links">
+    <a class="nav-link" href="/">← Site</a>
+    <a class="nav-link danger" href="/{{ secret }}/logout">Logout</a>
   </div>
-</nav>
+</div>
 
-<div class="wrap">
-  <div class="page-hd">
-    <h1>Dashboard</h1>
-    <p>Manage orders, pricing, offers, and M-Pesa payments.</p>
+<div class="main">
+
+{% with msgs = get_flashed_messages(with_categories=true) %}
+  {% for cat,msg in msgs %}
+  <div class="flash {{ cat }}">{{ msg }}</div>
+  {% endfor %}
+{% endwith %}
+
+<!-- Stats -->
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-label">Total revenue</div>
+    <div class="stat-val" style="color:var(--green)">KSh {{ '{:,}'.format(stats.revenue) }}</div>
+    <div class="stat-sub">All time · paid orders</div>
   </div>
+  <div class="stat-card">
+    <div class="stat-label">Paid orders</div>
+    <div class="stat-val">{{ stats.paid }}</div>
+    <div class="stat-sub">of {{ stats.total }} total</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Today's orders</div>
+    <div class="stat-val" style="color:var(--red)">{{ stats.today }}</div>
+    <div class="stat-sub">paid today</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Pending payment</div>
+    <div class="stat-val" style="color:var(--gold)">{{ stats.total - stats.paid }}</div>
+    <div class="stat-sub">need follow-up</div>
+  </div>
+</div>
 
-  {% with msgs = get_flashed_messages(with_categories=true) %}
-    {% for cat, msg in msgs %}
-    <div class="flash flash-{{ 'ok' if cat == 'success' else 'err' }}">
-      {{ '✓' if cat == 'success' else '⚠' }} {{ msg }}
+<!-- Revenue chart -->
+<div class="chart-card">
+  <div class="card-hdr">
+    <div class="card-title">30-Day Revenue (KSh)</div>
+  </div>
+  <canvas id="revenueChart" height="80"></canvas>
+</div>
+
+<!-- Abandoned follow-ups -->
+{% if followups %}
+<div class="chart-card">
+  <div class="card-hdr">
+    <div class="card-title">⚠ Abandoned Orders — Need Follow-Up</div>
+  </div>
+  {% for o in followups %}
+  <div class="followup-card">
+    <div class="followup-info">
+      <h4>{{ o.business }}</h4>
+      <p>{{ o.phone }} · KSh {{ '{:,}'.format(o.amount) }} · {{ o.package }} · {{ o.created_at.strftime('%d %b, %H:%M') }}</p>
     </div>
-    {% endfor %}
-  {% endwith %}
-
-  <!-- STATS -->
-  <div class="stats">
-    <div class="sc"><div class="sc-l">Total orders</div><div class="sc-v">{{ stats.total }}</div></div>
-    <div class="sc"><div class="sc-l">Paid orders</div><div class="sc-v" style="color:var(--green)">{{ stats.paid }}</div></div>
-    <div class="sc"><div class="sc-l">Revenue (KSh)</div><div class="sc-v" style="color:var(--gold)">{{ "{:,}".format(stats.revenue) }}</div></div>
-    <div class="sc"><div class="sc-l">Paid today</div><div class="sc-v" style="color:var(--red)">{{ stats.today }}</div></div>
-  </div>
-
-  <!-- PRICE + OFFER EDITOR -->
-  <div class="section">
-    <div class="sec-hd">
-      💰 Package Prices & Offers
-      <span class="sec-hd-right">Changes go live instantly on the website</span>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <a class="btn-sm green" href="https://wa.me/254{{ o.phone.lstrip('0') }}?text=Hi%21+I+noticed+you+were+checking+out+CatalogPro+but+didn%27t+complete+your+order.+Need+any+help%3F+%F0%9F%98%8A" target="_blank">📲 WhatsApp</a>
+      <form action="/{{ secret }}/bypass-pay/{{ o.id }}" method="POST" class="inline-form">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="mpesa_ref" value="MANUAL">
+        <button class="btn-sm green" type="submit">✓ Mark paid</button>
+      </form>
+      <form action="/{{ secret }}/del/{{ o.id }}" method="POST" class="inline-form" onsubmit="return confirm('Delete {{ o.id }}?')">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <button class="btn-sm danger" type="submit">✕</button>
+      </form>
     </div>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
 
-    <form method="POST" action="{{ admin_url('admin_update_prices') }}">
-      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-      <div class="pkg-editor-grid">
-        {% for key, pkg in packages.items() %}
-        <div class="pec">
-          <div class="pec-name">{{ pkg.label }}</div>
-          <div class="pec-sub">{{ pkg.tagline }} · up to {{ pkg.max_products }} products</div>
-
-          <!-- Current price -->
-          <span class="field-label">Current price (KSh)</span>
-          <div class="field-row">
-            <span class="field-prefix">KSh</span>
-            <input type="number" class="fi" name="price_{{ key }}" value="{{ pkg.price }}" min="1" max="99999" style="flex:1">
-          </div>
-
-          <!-- Offer toggle -->
-          <label class="offer-toggle" for="offer-toggle-{{ key }}" style="margin-top:14px">
-            <input type="checkbox" id="offer-toggle-{{ key }}"
-                   onchange="toggleOffer('{{ key }}', this.checked)"
-                   {% if pkg.offer_orig %}checked{% endif %}>
-            Show limited-time offer (strikethrough price)
-          </label>
-
-          <div class="offer-fields {% if pkg.offer_orig %}show{% endif %}" id="offer-{{ key }}">
-            <span class="field-label">Original (crossed-out) price (KSh)</span>
-            <div class="field-row">
-              <span class="field-prefix">KSh</span>
-              <input type="number" class="fi" name="offer_orig_{{ key }}"
-                     id="orig-{{ key }}"
-                     value="{{ pkg.offer_orig or '' }}" min="0" max="99999"
-                     placeholder="e.g. 499" style="flex:1"
-                     oninput="updatePreview('{{ key }}')">
-            </div>
-
-            <span class="field-label">Offer badge text</span>
-            <input type="text" class="fi" name="offer_label_{{ key }}"
-                   id="label-{{ key }}"
-                   value="{{ pkg.offer_label or 'LIMITED TIME OFFER' }}"
-                   placeholder="e.g. FLASH SALE — TODAY ONLY"
-                   oninput="updatePreview('{{ key }}')">
-
-            <span class="field-label">Offer ends (optional) — shown as countdown</span>
-            <input type="datetime-local" class="fi" name="offer_until_{{ key }}"
-                   id="until-{{ key }}"
-                   value="{{ pkg.offer_until or '' }}">
-
-            <div class="offer-preview" id="preview-{{ key }}">
-              {% if pkg.offer_orig %}
-              🏷 Customers will see: <s>KSh {{ "{:,}".format(pkg.offer_orig) }}</s>
-              → <strong>KSh {{ "{:,}".format(pkg.price) }}</strong>
-              · {{ pkg.offer_label }}
-              {% else %}
-              Preview will appear here
-              {% endif %}
-            </div>
-          </div>
-
-          <!-- Clear offer (hidden, set by JS when unchecked) -->
-          <input type="hidden" name="offer_orig_{{ key }}_clear" id="clear-{{ key }}" value="0">
-        </div>
-        {% endfor %}
+<!-- Pricing & offers -->
+<div class="chart-card">
+  <div class="card-hdr"><div class="card-title">Pricing & Offers</div></div>
+  <form action="/{{ secret }}/prices" method="POST">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <div class="price-grid">
+      {% for key,pkg in packages.items() %}
+      <div class="price-pkg">
+        <div class="price-pkg-name">{{ pkg.label }}</div>
+        <label>Current price (KSh)</label>
+        <input type="number" name="price_{{ key }}" value="{{ pkg.price }}" min="1" max="99999">
+        <label>Offer: original price (0 = no offer)</label>
+        <input type="number" name="offer_orig_{{ key }}" value="{{ pkg.offer_orig or 0 }}" min="0">
+        <label>Offer label</label>
+        <input type="text" name="offer_label_{{ key }}" value="{{ pkg.offer_label or 'LIMITED OFFER' }}" placeholder="e.g. LAUNCH SPECIAL">
+        <label>Offer ends (datetime, blank = no countdown)</label>
+        <input type="datetime-local" name="offer_until_{{ key }}" value="{{ pkg.offer_until or '' }}">
       </div>
-      <button type="submit" class="save-btn">💾 Save all prices & offers — live immediately</button>
-    </form>
-  </div>
-
-  <!-- ORDERS TABLE -->
-  <div class="section">
-    <div class="sec-hd">
-      📋 All Orders
-      <span class="sec-hd-right">{{ orders|length }} orders total</span>
+      {% endfor %}
     </div>
+    <button class="sav-btn" type="submit">Save pricing & offers</button>
+  </form>
+</div>
 
-    <div class="tbl-wrap">
-      {% if orders %}
-      <div style="overflow-x:auto">
-      <table>
-        <thead><tr>
-          <th>Order ID</th>
-          <th>Business</th>
-          <th class="hide-m">Package</th>
-          <th>Amount</th>
-          <th>Status</th>
-          <th class="hide-m">M-Pesa / Ref</th>
-          <th class="hide-m">Date</th>
-          <th>Actions</th>
-        </tr></thead>
-        <tbody>
+<!-- All orders table -->
+<div class="chart-card">
+  <div class="card-hdr">
+    <div class="card-title">All Orders</div>
+    <input type="text" id="search" placeholder="Search orders…" style="padding:7px 12px;border:1px solid var(--line);border-radius:7px;font-size:.8rem;outline:none;font-family:'DM Sans',sans-serif;width:220px">
+  </div>
+  <div class="tbl-wrap">
+    <table id="orders-tbl">
+      <thead>
+        <tr>
+          <th>Order ID</th><th>Business</th><th>Package</th>
+          <th>Amount</th><th>Phone</th><th>Status</th>
+          <th>Date</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
         {% for o in orders %}
         <tr>
-          <td><code>{{ o.id }}</code></td>
-          <td><strong>{{ o.business }}</strong><br><span style="font-size:0.72rem;color:var(--pale)">{{ o.phone }}</span></td>
-          <td class="hide-m"><span class="pkb">{{ packages[o.package].label if o.package in packages else o.package }}</span></td>
-          <td><strong>KSh {{ o.amount }}</strong></td>
+          <td><code style="font-size:.75rem;color:var(--mid)">{{ o.id }}</code></td>
+          <td style="font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ o.business }}</td>
+          <td>{{ packages[o.package].label if o.package in packages else o.package }}</td>
+          <td>KSh {{ '{:,}'.format(o.amount) }}</td>
+          <td>{{ o.phone }}</td>
           <td>
-            {% if o.status == 'paid' %}<span class="status-b s-paid">✓ Paid</span>
-            {% elif o.status == 'awaiting_payment' %}<span class="status-b s-wait">⏳ STK Sent</span>
-            {% elif o.status == 'pending' %}<span class="status-b s-pend">● Pending</span>
-            {% else %}<span class="status-b s-err">✕ {{ o.status }}</span>{% endif %}
+            {% if o.status == 'paid' %}<span class="badge badge-paid">✓ Paid</span>
+            {% elif o.status == 'failed' %}<span class="badge badge-failed">✕ Failed</span>
+            {% elif o.status == 'awaiting_payment' %}<span class="badge badge-awaiting">⏳ Awaiting</span>
+            {% else %}<span class="badge badge-pending">Pending</span>{% endif %}
           </td>
-          <td class="hide-m" style="font-size:0.75rem;color:var(--pale)">{{ o.mpesa_code or '—' }}</td>
-          <td class="hide-m" style="font-size:0.75rem;color:var(--pale)">{{ o.created_at[:16] }}</td>
+          <td style="color:var(--pale)">{{ o.created_at.strftime('%d %b %y') }}</td>
           <td>
-            <div class="acts">
+            <div style="display:flex;gap:5px;flex-wrap:wrap">
               {% if o.status == 'paid' and o.catalog_file %}
-              <a class="ab a-dl" href="{{ admin_url('admin_download', order_id=o.id) }}">↓ PDF</a>
+              <a class="btn-sm" href="/{{ secret }}/dl/{{ o.id }}">↓ PDF</a>
               {% endif %}
-
               {% if o.status != 'paid' %}
-              <!-- Manual bypass: generates PDF without M-Pesa -->
-              <button class="ab a-manual" onclick="openBypass('{{ o.id }}', '{{ o.business|e }}', {{ o.amount }})">
-                ✓ Mark Paid
-              </button>
-              <!-- Simulate STK Push completion -->
-              <button class="ab a-sim" onclick="openSimulate('{{ o.id }}', '{{ o.business|e }}')">
-                ⚡ Simulate STK
-              </button>
-              {% endif %}
-
-              <form method="POST" action="{{ admin_url('admin_delete', order_id=o.id) }}" style="display:inline">
+              <form action="/{{ secret }}/bypass-pay/{{ o.id }}" method="POST" class="inline-form">
                 <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-                <button class="ab a-del" type="submit" onclick="return confirm('Delete order {{ o.id }}?')">✕</button>
+                <input type="hidden" name="mpesa_ref" value="MANUAL">
+                <button class="btn-sm green" type="submit" title="Mark as paid">✓ Pay</button>
+              </form>
+              <form action="/{{ secret }}/simulate-stk/{{ o.id }}" method="POST" class="inline-form">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button class="btn-sm" type="submit" title="Simulate STK">⚡ STK</button>
+              </form>
+              {% endif %}
+              <form action="/{{ secret }}/del/{{ o.id }}" method="POST" class="inline-form" onsubmit="return confirm('Delete order {{ o.id }}?')">
+                <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                <button class="btn-sm danger" type="submit">✕</button>
               </form>
             </div>
           </td>
         </tr>
         {% endfor %}
-        </tbody>
-      </table>
-      </div>
-      {% else %}
-      <div class="empty-state"><div>📭</div>No orders yet. Share your site to get started!</div>
-      {% endif %}
-    </div>
+      </tbody>
+    </table>
   </div>
 </div>
 
-<!-- BYPASS MODAL (Mark Paid) -->
-<div class="modal-overlay" id="bypass-modal">
-  <div class="modal">
-    <h3>Mark Order as Paid</h3>
-    <p>This generates the PDF immediately without requiring M-Pesa confirmation.
-       Use when a customer paid via till number, bank transfer, or the STK failed.</p>
-    <input type="hidden" id="bypass-oid">
-    <div class="modal-field">
-      <label>M-Pesa / Payment Reference (optional)</label>
-      <input type="text" id="bypass-ref" placeholder="e.g. QGL4XXXXX or MANUAL">
-    </div>
-    <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:7px;padding:10px 14px;font-size:0.78rem;color:var(--blue);margin-bottom:16px">
-      ℹ️ The PDF will be generated using the customer's saved order data.
-      If the session has expired, a minimal PDF (business name only) will be created.
-    </div>
-    <div class="modal-btns">
-      <button class="mb-cancel" onclick="closeModal('bypass-modal')">Cancel</button>
-      <button class="mb-confirm" onclick="submitBypass()">✓ Generate PDF & Mark Paid</button>
-    </div>
-  </div>
-</div>
-
-<!-- SIMULATE STK MODAL -->
-<div class="modal-overlay" id="simulate-modal">
-  <div class="modal">
-    <h3>Simulate STK Push</h3>
-    <p>Marks this order as paid with a fake receipt code.
-       Use in sandbox mode for demos or testing without real M-Pesa.</p>
-    <input type="hidden" id="sim-oid">
-    <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:7px;padding:10px 14px;font-size:0.78rem;color:#7c3aed;margin-bottom:20px">
-      ⚡ A fake M-Pesa code (SIM + order ID) will be generated and the catalog PDF will be created immediately.
-    </div>
-    <div class="modal-btns">
-      <button class="mb-cancel" onclick="closeModal('simulate-modal')">Cancel</button>
-      <button class="mb-confirm mb-sim" onclick="submitSimulate()">⚡ Simulate & Generate PDF</button>
-    </div>
-  </div>
-</div>
-
-<!-- Hidden forms for bypass / simulate -->
-<form id="bypass-form" method="POST" style="display:none">
-  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-  <input type="hidden" name="mpesa_ref" id="bypass-form-ref">
-</form>
-<form id="simulate-form" method="POST" style="display:none">
-  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
-</form>
+</div><!-- /main -->
 
 <script>
-const SECRET = "{{ secret }}";
-
-// ── Offer toggle ──────────────────────────────────────────────────────────────
-function toggleOffer(key, show) {
-  const el = document.getElementById('offer-' + key);
-  if (show) {
-    el.classList.add('show');
-    document.getElementById('clear-' + key).value = '0';
-  } else {
-    el.classList.remove('show');
-    document.getElementById('clear-' + key).value = '1';
-    document.getElementById('orig-' + key).value = '';
-    document.getElementById('preview-' + key).textContent = 'Preview will appear here';
+// Revenue chart
+const ctx = document.getElementById('revenueChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{ chart_labels | tojson }},
+    datasets: [{
+      label: 'Revenue (KSh)',
+      data: {{ chart_data | tojson }},
+      backgroundColor: 'rgba(194,59,38,.15)',
+      borderColor: '#c23b26',
+      borderWidth: 2,
+      borderRadius: 5,
+      hoverBackgroundColor: 'rgba(194,59,38,.3)',
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => `KSh ${ctx.parsed.y.toLocaleString()}`
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: { color: '#e8e2d9' },
+        ticks: {
+          font: { family: "'DM Sans', sans-serif", size: 11 },
+          callback: v => 'KSh ' + v.toLocaleString()
+        }
+      },
+      x: {
+        grid: { display: false },
+        ticks: {
+          font: { family: "'DM Sans', sans-serif", size: 10 },
+          maxRotation: 45
+        }
+      }
+    }
   }
-}
+});
 
-function updatePreview(key) {
-  const orig  = parseInt(document.getElementById('orig-' + key)?.value) || 0;
-  const label = document.getElementById('label-' + key)?.value || 'LIMITED TIME OFFER';
-  const priceInput = document.querySelector(`input[name="price_${key}"]`);
-  const current = parseInt(priceInput?.value) || 0;
-  const el = document.getElementById('preview-' + key);
-  if (orig > 0 && current > 0) {
-    el.innerHTML = `🏷 Customers will see: <s>KSh ${orig.toLocaleString()}</s> → <strong>KSh ${current.toLocaleString()}</strong> · <em>${label}</em>`;
-  } else {
-    el.textContent = 'Fill in original price above to see preview';
-  }
-}
-
-// ── Bypass modal ──────────────────────────────────────────────────────────────
-function openBypass(oid, biz, amount) {
-  document.getElementById('bypass-oid').value = oid;
-  document.getElementById('bypass-ref').value = '';
-  document.querySelector('#bypass-modal h3').textContent = `Mark Order ${oid} as Paid`;
-  document.querySelector('#bypass-modal p').textContent =
-    `Business: ${biz} · KSh ${amount.toLocaleString()}. Generates PDF immediately.`;
-  document.getElementById('bypass-modal').classList.add('open');
-}
-
-function submitBypass() {
-  const oid = document.getElementById('bypass-oid').value;
-  const ref = document.getElementById('bypass-ref').value.trim() || 'MANUAL-BYPASS';
-  const form = document.getElementById('bypass-form');
-  form.action = `/${SECRET}/bypass-pay/${oid}`;
-  document.getElementById('bypass-form-ref').value = ref;
-  form.submit();
-}
-
-// ── Simulate STK modal ────────────────────────────────────────────────────────
-function openSimulate(oid, biz) {
-  document.getElementById('sim-oid').value = oid;
-  document.querySelector('#simulate-modal h3').textContent = `Simulate STK for Order ${oid}`;
-  document.getElementById('simulate-modal').classList.add('open');
-}
-
-function submitSimulate() {
-  const oid = document.getElementById('sim-oid').value;
-  const form = document.getElementById('simulate-form');
-  form.action = `/${SECRET}/simulate-stk/${oid}`;
-  form.submit();
-}
-
-function closeModal(id) {
-  document.getElementById(id).classList.remove('open');
-}
-
-// Close modal on overlay click
-document.querySelectorAll('.modal-overlay').forEach(el => {
-  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+// Order search
+document.getElementById('search').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('#orders-tbl tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
 });
 </script>
 </body>
 </html>
+

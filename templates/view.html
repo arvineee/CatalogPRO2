@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{ order.business }} — Catalog</title>
+<meta name="description" content="View the product catalog for {{ order.business }}. Powered by CatalogPro Kenya.">
+<!-- Open Graph for WhatsApp preview -->
+<meta property="og:title" content="{{ order.business }} — Product Catalog">
+<meta property="og:description" content="Browse our full product catalog. Contact us to order.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#faf8f3; --ink:#131211; --mid:#6b6460; --pale:#a09890;
+  --line:#e8e2d9; --red:#c23b26; --gold:#b8892a; --card:#fff;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; }
+
+/* ── TOP BAR ── */
+.topbar {
+  height:56px; background:var(--ink);
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 32px; position:sticky; top:0; z-index:100;
+}
+.topbar-logo {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.1rem; font-weight:700; color:#fff; text-decoration:none;
+}
+.topbar-logo em { color:var(--red); font-style:normal; }
+.topbar-actions { display:flex; gap:10px; align-items:center; }
+.btn-download {
+  padding:8px 18px; background:var(--red); color:#fff;
+  border:none; border-radius:7px; font-size:.82rem; font-weight:500;
+  text-decoration:none; cursor:pointer;
+  transition:background .2s; white-space:nowrap;
+}
+.btn-download:hover { background:#a83220; }
+.btn-create {
+  padding:8px 18px; background:rgba(255,255,255,.12); color:#fff;
+  border:1px solid rgba(255,255,255,.2); border-radius:7px;
+  font-size:.82rem; text-decoration:none;
+  transition:background .2s; white-space:nowrap;
+}
+.btn-create:hover { background:rgba(255,255,255,.2); }
+
+/* ── BUSINESS HEADER ── */
+.biz-header {
+  background:#fff; border-bottom:1px solid var(--line);
+  padding:20px 32px;
+  display:flex; align-items:center; justify-content:space-between;
+  flex-wrap:wrap; gap:12px;
+}
+.biz-name {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1.5rem; font-weight:700; letter-spacing:-.2px;
+}
+.biz-share { display:flex; align-items:center; gap:8px; }
+.share-lbl { font-size:.75rem; color:var(--pale); }
+.copy-link-btn {
+  padding:7px 14px; background:var(--bg); border:1px solid var(--line);
+  border-radius:7px; font-size:.78rem; color:var(--mid); cursor:pointer;
+  font-family:'DM Sans',sans-serif; transition:all .2s;
+  display:flex; align-items:center; gap:5px;
+}
+.copy-link-btn:hover { border-color:var(--ink); color:var(--ink); }
+.copy-link-btn.copied { background:#f0fdf4; border-color:#bbf7d0; color:#15803d; }
+
+/* ── PDF VIEWER ── */
+.pdf-outer {
+  max-width:900px; margin:24px auto; padding:0 16px;
+}
+.pdf-frame-wrap {
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,.08);
+}
+.pdf-toolbar {
+  background:var(--bg); border-bottom:1px solid var(--line);
+  padding:10px 18px; display:flex; align-items:center; gap:10px;
+}
+.toolbar-dots { display:flex; gap:5px; }
+.td { width:10px; height:10px; border-radius:50%; }
+.toolbar-title { font-size:.73rem; color:var(--pale); margin-left:6px; flex:1; }
+.toolbar-zoom { font-size:.72rem; color:var(--pale); }
+.pdf-iframe { width:100%; height:80vh; border:none; display:block; background:#f4f4f4; }
+
+/* ── FOOTER BAND ── */
+.view-footer {
+  background:var(--ink); text-align:center; padding:32px 24px; margin-top:32px;
+}
+.view-footer p { font-size:.82rem; color:rgba(255,255,255,.45); margin-bottom:12px; }
+.view-footer a {
+  display:inline-block; padding:10px 24px;
+  background:var(--red); color:#fff; border-radius:8px;
+  font-size:.85rem; font-weight:500; text-decoration:none;
+  transition:background .2s;
+}
+.view-footer a:hover { background:#a83220; }
+.view-footer-logo {
+  font-family:'Cormorant Garamond',serif;
+  font-size:1rem; font-weight:700; color:rgba(255,255,255,.3);
+  margin-top:16px;
+}
+.view-footer-logo em { color:var(--red); font-style:normal; opacity:.7; }
+
+/* WhatsApp CTA for mobile */
+.wa-cta {
+  display:none; background:#25D366; color:#fff;
+  width:100%; padding:14px; text-align:center;
+  font-size:.9rem; font-weight:600; text-decoration:none;
+  border-top:1px solid rgba(0,0,0,.1);
+}
+@media(max-width:600px) {
+  .topbar { padding:0 16px; }
+  .btn-create { display:none; }
+  .biz-header { padding:14px 16px; }
+  .pdf-iframe { height:70vh; }
+  .wa-cta { display:block; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="topbar-logo" href="/"><em>Catalog</em>Pro</a>
+  <div class="topbar-actions">
+    <a class="btn-create" href="/#pricing">Create yours →</a>
+    <a class="btn-download" href="/download/{{ order.id }}">↓ Download PDF</a>
+  </div>
+</div>
+
+<div class="biz-header">
+  <div class="biz-name">{{ order.business }}</div>
+  <div class="biz-share">
+    <span class="share-lbl">Share this catalog:</span>
+    <button class="copy-link-btn" id="copy-btn" onclick="copyLink()">
+      🔗 Copy link
+    </button>
+  </div>
+</div>
+
+<a class="wa-cta" href="https://wa.me/?text={{ order.business }} Catalog: {{ request.url }}">
+  📲 Share on WhatsApp
+</a>
+
+<div class="pdf-outer">
+  <div class="pdf-frame-wrap">
+    <div class="pdf-toolbar">
+      <div class="toolbar-dots">
+        <div class="td" style="background:#ff5f56"></div>
+        <div class="td" style="background:#ffbd2e"></div>
+        <div class="td" style="background:#27c93f"></div>
+      </div>
+      <div class="toolbar-title">{{ order.business }} — Product Catalog</div>
+      <div class="toolbar-zoom">{{ pkg.label }} Package</div>
+    </div>
+    <iframe class="pdf-iframe" src="/view-pdf/{{ order.id }}"></iframe>
+  </div>
+</div>
+
+<div class="view-footer">
+  <p>Want a professional catalog like this for your business?</p>
+  <a href="/#pricing">Create mine now — from KSh 149 →</a>
+  <div class="view-footer-logo"><em>Catalog</em>Pro Kenya</div>
+</div>
+
+<script>
+function copyLink() {
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(() => {
+    const btn = document.getElementById('copy-btn');
+    btn.textContent = '✓ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => {
+      btn.textContent = '🔗 Copy link';
+      btn.classList.remove('copied');
+    }, 2500);
+  });
+}
+</script>
+</body>
+</html>
+
