@@ -14,7 +14,8 @@ CatalogPro v4 — Full rewrite
 import os, functools, time, secrets as _secrets
 from datetime   import datetime, timedelta
 from flask      import (Flask, render_template, request, redirect, url_for,
-                        send_file, session, jsonify, flash, abort, make_response)
+                        send_file, session, jsonify, flash, abort, make_response,
+                        Response)
 from werkzeug.utils import secure_filename
 from sqlalchemy import func
 
@@ -57,7 +58,7 @@ def _rate_limit(ip, max_calls=30, window=60):
 @app.after_request
 def security_headers(resp):
     resp.headers["X-Content-Type-Options"]  = "nosniff"
-    resp.headers["X-Frame-Options"]          = "SAMEORIGIN"   # allow iframe on /view
+    resp.headers["X-Frame-Options"]          = "SAMEORIGIN"
     resp.headers["X-XSS-Protection"]         = "1; mode=block"
     resp.headers["Referrer-Policy"]           = "strict-origin-when-cross-origin"
     resp.headers["Permissions-Policy"]        = "geolocation=(), microphone=()"
@@ -94,16 +95,34 @@ def save_upload(f, prefix="img"):
         return path
     return None
 
+# ── FIX 2: get_packages() — cached, single DB query ──────────────────────────
+_pkg_cache = {"data": None, "ts": 0}
+_PKG_TTL   = 60   # cache for 60 seconds
+
 def get_packages():
+    """
+    Returns package config with DB-overridden prices.
+    Cached for 60 s — was 12 separate DB hits per page load before.
+    """
+    now = time.time()
+    if _pkg_cache["data"] and now - _pkg_cache["ts"] < _PKG_TTL:
+        return _pkg_cache["data"]
+
+    # One round-trip: fetch ALL settings at once
+    all_settings = {s.key: s.value for s in Setting.query.all()}
+
     pkgs = {}
     for key, pkg in Config.PACKAGES.items():
         p = dict(pkg)
-        stored_price = Setting.get(f"price_{key}")
+
+        stored_price = all_settings.get(f"price_{key}", "")
         if stored_price and stored_price.isdigit():
             p["price"] = int(stored_price)
-        offer_orig  = Setting.get(f"offer_orig_{key}")
-        offer_label = Setting.get(f"offer_label_{key}")
-        offer_until = Setting.get(f"offer_until_{key}")
+
+        offer_orig  = all_settings.get(f"offer_orig_{key}",  "")
+        offer_label = all_settings.get(f"offer_label_{key}", "")
+        offer_until = all_settings.get(f"offer_until_{key}", "")
+
         if offer_orig and offer_orig.isdigit() and int(offer_orig) > 0:
             p["offer_orig"]  = int(offer_orig)
             p["offer_label"] = offer_label or "LIMITED TIME OFFER"
@@ -112,9 +131,20 @@ def get_packages():
             p["offer_orig"]  = None
             p["offer_label"] = None
             p["offer_until"] = None
+
         pkgs[key] = p
+
+    _pkg_cache["data"] = pkgs
+    _pkg_cache["ts"]   = now
     return pkgs
 
+
+def invalidate_pkg_cache():
+    """Call after admin changes prices so cache refreshes immediately."""
+    _pkg_cache["data"] = None
+    _pkg_cache["ts"]   = 0
+
+# ── Form helpers ──────────────────────────────────────────────────────────────
 def _collect_form(req, pkg):
     logo_path = None
     if pkg["logo"]:
@@ -273,13 +303,13 @@ _login_attempts = {}
 def _admin_url(endpoint, **kw):
     base = f"/{SECRET}"
     routes = {
-        "admin_login":         f"{base}/login",
-        "admin_logout":        f"{base}/logout",
-        "admin_dashboard":     f"{base}/",
-        "admin_update_prices": f"{base}/prices",
-        "admin_mark_paid":     f"{base}/mark-paid/{kw.get('order_id','')}",
-        "admin_download":      f"{base}/dl/{kw.get('order_id','')}",
-        "admin_delete":        f"{base}/del/{kw.get('order_id','')}",
+        "admin_login":              f"{base}/login",
+        "admin_logout":             f"{base}/logout",
+        "admin_dashboard":          f"{base}/",
+        "admin_update_prices":      f"{base}/prices",
+        "admin_mark_paid":          f"{base}/mark-paid/{kw.get('order_id','')}",
+        "admin_download":           f"{base}/dl/{kw.get('order_id','')}",
+        "admin_delete":             f"{base}/del/{kw.get('order_id','')}",
         "admin_bypass_pay":         f"{base}/bypass-pay/{kw.get('order_id','')}",
         "admin_simulate_stk":       f"{base}/simulate-stk/{kw.get('order_id','')}",
         "admin_job_abandoned":      f"{base}/jobs/abandoned",
@@ -326,7 +356,6 @@ def landing():
     ip = get_client_ip()
     if _rate_limit(ip, 60, 60):
         abort(429)
-    # Live stats for the counter
     total_paid = Order.query.filter_by(status="paid").count()
     demos = {
         "fashion":     {"label": "Fashion Boutique",  "icon": "👗"},
@@ -398,7 +427,7 @@ def submit(pkg_key):
         if ref:
             discount = ref.discount
         else:
-            referral_code = ""  # invalid — ignore silently
+            referral_code = ""
 
     final_amount = max(1, pkg["price"] - discount)
 
@@ -417,44 +446,29 @@ def submit(pkg_key):
     db.session.add(order)
     db.session.commit()
 
-    # Store full build data in DB (not session — needed for background threads)
+    # Save catalog data JSON for background PDF generation
     order.set_data(d)
     db.session.commit()
 
-    return redirect(url_for("preview_page", order_id=order.id))
+    return redirect(url_for("payment", order_id=order.id))
 
 
-@app.route("/preview/<order_id>")
-def preview_page(order_id):
-    if not order_id.isalnum() or len(order_id) > 20:
-        abort(404)
-    order = Order.query.get(order_id)
-    if not order:
-        abort(404)
+@app.route("/preview/<pkg_key>", methods=["POST"])
+def preview(pkg_key):
+    _verify_csrf()
     pkgs = get_packages()
-    pkg  = pkgs[order.package]
-    data = order.get_data()
-
-    prev_key  = f"prev_{order_id}"
-    prev_file = session.get(prev_key)
-    if not prev_file or not os.path.exists(os.path.join(Config.CATALOG_FOLDER, prev_file)):
-        if data:
-            try:
-                prev_file = generate_preview(data)
-                session[prev_key] = prev_file
-            except Exception as e:
-                print(f"[PREVIEW ERROR] {e}")
-                prev_file = None
-    return render_template("preview.html", order=order, pkg=pkg, prev_file=prev_file)
-
-
-@app.route("/preview-pdf/<order_id>")
-def serve_preview(order_id):
-    if not order_id.isalnum():
+    pkg  = pkgs.get(pkg_key)
+    if not pkg:
         abort(404)
-    prev_file = session.get(f"prev_{order_id}")
-    if not prev_file:
-        abort(404)
+    d = _collect_form(request, pkg)
+    if not d["products"]:
+        flash("Add at least one product to preview.", "error")
+        return redirect(url_for("order", pkg_key=pkg_key))
+    try:
+        prev_file = generate_preview(d)
+    except Exception as e:
+        flash(f"Preview error: {e}", "error")
+        return redirect(url_for("order", pkg_key=pkg_key))
     path = os.path.join(Config.CATALOG_FOLDER, prev_file)
     if not os.path.exists(path):
         abort(404)
@@ -540,12 +554,10 @@ def status(order_id):
     pkgs = get_packages()
     pkg  = pkgs[order.package]
 
-    # Referral code for customer to share
     referral = None
     if order.status == "paid":
         referral = Referral.create_for(order.phone, order.business)
 
-    # Upsell: suggest Premium if they bought Starter/Business
     upsell = None
     if order.status == "paid" and order.package != "premium":
         next_pkg = "business" if order.package == "starter" else "premium"
@@ -627,6 +639,33 @@ def validate_referral():
     return jsonify({"ok": False, "msg": "Invalid referral code."})
 
 
+# ── FIX 1: favicon.ico & robots.txt — stops 404 spam ─────────────────────────
+
+@app.route("/favicon.ico")
+def favicon():
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        '<rect width="32" height="32" rx="7" fill="#18120a"/>'
+        '<text x="16" y="23" font-size="18" text-anchor="middle" fill="#c8891a">'
+        "C</text></svg>"
+    )
+    return Response(svg, mimetype="image/svg+xml",
+                    headers={"Cache-Control": "public, max-age=86400"})
+
+
+@app.route("/robots.txt")
+def robots_txt():
+    txt = (
+        "User-agent: *\n"
+        f"Disallow: /{SECRET}/\n"
+        "Disallow: /admin\n"
+        "Disallow: /track\n"
+        "Allow: /\n"
+    )
+    return Response(txt, mimetype="text/plain",
+                    headers={"Cache-Control": "public, max-age=3600"})
+
+
 # ══════════════════════════════════════════════════════════════════════════════
 # ADMIN ROUTES
 # ══════════════════════════════════════════════════════════════════════════════
@@ -665,6 +704,7 @@ def admin_logout():
     return redirect(url_for("landing"))
 
 
+# ── FIX 3: Admin dashboard — paginated + COUNT/SUM instead of loading all rows
 @app.route(f"/{SECRET}/")
 @admin_only
 def admin_dashboard():
@@ -672,39 +712,71 @@ def admin_dashboard():
         session.clear()
         return redirect(f"/{SECRET}/login")
 
-    pkgs = get_packages()
-    orders = Order.query.order_by(Order.created_at.desc()).all()
-
-    # Stats
-    paid_orders = [o for o in orders if o.status == "paid"]
+    pkgs  = get_packages()
     today = datetime.utcnow().date()
-    total_revenue = sum(o.amount for o in paid_orders)
-    today_paid    = [o for o in paid_orders if o.paid_at and o.paid_at.date() == today]
+
+    # Stats via COUNT/SUM — no full table scan, no JSON loading
+    total_orders  = Order.query.count()
+    paid_count    = Order.query.filter_by(status="paid").count()
+    total_revenue = db.session.query(func.sum(Order.amount))\
+                              .filter_by(status="paid").scalar() or 0
+    today_count   = Order.query.filter(
+        Order.status == "paid",
+        func.date(Order.paid_at) == today,
+    ).count()
 
     stats = {
-        "total":   len(orders),
-        "paid":    len(paid_orders),
+        "total":   total_orders,
+        "paid":    paid_count,
         "revenue": total_revenue,
-        "today":   len(today_paid),
+        "today":   today_count,
     }
 
-    # 30-day revenue chart data
-    chart_labels = []
-    chart_data   = []
+    # Paginated order list — 50 rows at a time, no JSON column loaded
+    page       = request.args.get("page", 1, type=int)
+    pagination = Order.query\
+                      .with_entities(
+                          Order.id, Order.business, Order.package,
+                          Order.amount, Order.phone, Order.email,
+                          Order.theme, Order.status, Order.catalog_file,
+                          Order.mpesa_code, Order.referral_code,
+                          Order.discount, Order.follow_up_sent,
+                          Order.email_sent, Order.paid_at, Order.created_at,
+                      )\
+                      .order_by(Order.created_at.desc())\
+                      .paginate(page=page, per_page=50, error_out=False)
+    orders = pagination.items
+
+    # 30-day chart — only fetch paid_at + amount in window
+    window_start = datetime.utcnow() - timedelta(days=30)
+    recent_paid  = Order.query.filter(
+        Order.status == "paid",
+        Order.paid_at >= window_start,
+    ).with_entities(Order.paid_at, Order.amount).all()
+
+    day_map = {}
+    for paid_at, amount in recent_paid:
+        if paid_at:
+            day_map.setdefault(paid_at.date(), 0)
+            day_map[paid_at.date()] += amount
+
+    chart_labels, chart_data = [], []
     for i in range(29, -1, -1):
         day = today - timedelta(days=i)
-        rev = sum(o.amount for o in paid_orders if o.paid_at and o.paid_at.date() == day)
         chart_labels.append(day.strftime("%d %b"))
-        chart_data.append(rev)
+        chart_data.append(day_map.get(day, 0))
 
-    # Follow-up list (abandoned, follow_up_sent=True but not paid)
+    # Follow-up list
     followups = Order.query.filter(
         Order.follow_up_sent == True,
         Order.status.in_(["pending", "awaiting_payment"]),
     ).order_by(Order.created_at.desc()).limit(20).all()
 
     return render_template("admin/dashboard.html",
-                           orders=orders, stats=stats, packages=pkgs,
+                           orders=orders,
+                           pagination=pagination,
+                           stats=stats,
+                           packages=pkgs,
                            secret=SECRET,
                            chart_labels=chart_labels,
                            chart_data=chart_data,
@@ -725,6 +797,7 @@ def admin_update_prices():
         Setting.set(f"offer_orig_{key}",  orig  if orig and orig.isdigit() else "0")
         Setting.set(f"offer_label_{key}", label or "LIMITED TIME OFFER")
         Setting.set(f"offer_until_{key}", until)
+    invalidate_pkg_cache()   # ← cache busted on price change
     flash("Prices and offers updated.", "success")
     return redirect(f"/{SECRET}/")
 
@@ -787,23 +860,21 @@ def admin_delete(order_id):
     return redirect(f"/{SECRET}/")
 
 
-# ── Admin Job Routes (replaces APScheduler) ───────────────────────────────────
+# ── Admin Job Routes ───────────────────────────────────────────────────────────
 
 @app.route(f"/{SECRET}/jobs/abandoned", methods=["POST"])
 @admin_only
 def admin_job_abandoned():
-    """Flag abandoned orders (was: APScheduler every 45 min)."""
     _verify_csrf()
     try:
-        from models import db, Order
         cutoff = datetime.utcnow() - timedelta(minutes=45)
         abandoned = Order.query.filter(
             Order.status.in_(["pending", "awaiting_payment"]),
             Order.created_at <= cutoff,
             Order.follow_up_sent == False,
         ).all()
-        for order in abandoned:
-            order.follow_up_sent = True
+        for o in abandoned:
+            o.follow_up_sent = True
         if abandoned:
             db.session.commit()
         flash(f"✅ Abandoned check done — {len(abandoned)} order(s) flagged.", "success")
@@ -815,12 +886,9 @@ def admin_job_abandoned():
 @app.route(f"/{SECRET}/jobs/daily-summary", methods=["POST"])
 @admin_only
 def admin_job_daily_summary():
-    """Send admin daily summary email (was: APScheduler daily 08:00)."""
     _verify_csrf()
     try:
-        from models import db, Order
         from email_utils import send_admin_daily_summary
-        from sqlalchemy import func
         today = datetime.utcnow().date()
         today_orders  = Order.query.filter(
             Order.status == "paid",
@@ -853,7 +921,6 @@ def admin_job_daily_summary():
 @app.route(f"/{SECRET}/jobs/backup", methods=["POST"])
 @admin_only
 def admin_job_backup():
-    """Run MySQL database backup (was: APScheduler weekly Sunday)."""
     _verify_csrf()
     try:
         from scheduler import run_backup
@@ -872,5 +939,4 @@ for probe in ["/admin", "/admin/", "/wp-admin", "/wp-login.php", "/.env"]:
 if __name__ == "__main__":
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     app.run(debug=debug, host="0.0.0.0", port=5050)
-
 
