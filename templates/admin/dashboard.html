@@ -197,6 +197,7 @@ a:hover { text-decoration: underline; }
 .stat-card.cyan::before   { background: var(--accent2); }
 .stat-card.orange::before { background: var(--warn); }
 .stat-card.purple::before { background: var(--purple); }
+.stat-card.gold::before   { background: var(--gold); }
 .stat-label {
   font-size: 0.7rem;
   font-family: var(--font-mono);
@@ -384,7 +385,7 @@ tr:hover td { background: var(--surface2); }
 .btn-lg { padding: 10px 20px; font-size: 0.9rem; }
 .btn-block { width: 100%; justify-content: center; }
 
-/* ── Actions column dropdown ───────────────────────────────── */
+/* ── Actions column ────────────────────────────────────────── */
 .actions-cell { display: flex; gap: 6px; flex-wrap: wrap; }
 
 /* ── Modal ─────────────────────────────────────────────────── */
@@ -541,6 +542,35 @@ tr:hover td { background: var(--surface2); }
   color: var(--accent2);
 }
 
+/* ── Pagination ─────────────────────────────────────────────── */
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  flex-wrap: wrap;
+}
+.pagination .pg-info { flex: 1; }
+.pagination .pg-links { display: flex; gap: 6px; }
+.pg-btn {
+  padding: 5px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.pg-btn:hover { border-color: var(--accent); color: var(--accent); text-decoration: none; }
+.pg-btn.disabled { opacity: 0.3; pointer-events: none; }
+
 /* ── Empty state ───────────────────────────────────────────── */
 .empty {
   text-align: center;
@@ -612,6 +642,9 @@ tr:hover td { background: var(--surface2); }
       <div class="nav-label">Manage</div>
       <div class="nav-item" onclick="showSection('followups', this)">
         <span class="icon">🔔</span> Follow-ups
+        {% if followups %}
+        <span style="margin-left:auto;background:rgba(251,146,60,0.15);border:1px solid #7c2d12;border-radius:20px;padding:1px 7px;font-family:var(--font-mono);font-size:0.65rem;color:var(--warn)">{{ followups|length }}</span>
+        {% endif %}
       </div>
       <div class="nav-item" onclick="showSection('referrals', this)">
         <span class="icon">🔗</span> Referrals
@@ -684,15 +717,15 @@ tr:hover td { background: var(--surface2); }
           </div>
           <div class="stat-card orange">
             <div class="stat-icon">📅</div>
-            <div class="stat-label">Today's Sales</div>
+            <div class="stat-label">Today's Orders</div>
             <div class="stat-value">{{ stats.today }}</div>
-            <div class="stat-sub">orders today</div>
+            <div class="stat-sub">KSh {{ "{:,}".format(stats.today_revenue) }} today</div>
           </div>
           <div class="stat-card purple">
             <div class="stat-icon">🧾</div>
             <div class="stat-label">All Orders</div>
             <div class="stat-value">{{ stats.total }}</div>
-            <div class="stat-sub">incl. pending & failed</div>
+            <div class="stat-sub">incl. pending &amp; failed</div>
           </div>
         </div>
 
@@ -707,11 +740,11 @@ tr:hover td { background: var(--surface2); }
           </div>
         </div>
 
-        <!-- Recent Orders (last 10) -->
+        <!-- Recent Orders (last 10 of current page) -->
         <div class="table-card">
           <div class="table-toolbar">
             <div class="card-title">Recent Orders</div>
-            <button class="btn btn-ghost btn-sm" onclick="showSection('orders', document.querySelector('.nav-item:nth-child(2)'))">View all →</button>
+            <button class="btn btn-ghost btn-sm" onclick="showSection('orders', document.querySelectorAll('.nav-item')[1])">View all →</button>
           </div>
           <div style="overflow-x:auto">
             <table id="recent-table">
@@ -867,9 +900,50 @@ tr:hover td { background: var(--surface2); }
               </tbody>
             </table>
           </div>
-          <div style="padding:12px 20px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)" id="orders-count">
-            Showing {{ orders|length }} orders
+
+          <!-- ── Pagination ── -->
+          {% if pagination and pagination.pages > 1 %}
+          <div class="pagination">
+            <div class="pg-info">
+              Page {{ pagination.page }} of {{ pagination.pages }}
+              &nbsp;·&nbsp; {{ pagination.total }} orders total
+            </div>
+            <div class="pg-links">
+              {% if pagination.has_prev %}
+                <a href="?page=1" class="pg-btn">«</a>
+                <a href="?page={{ pagination.prev_num }}" class="pg-btn">← Prev</a>
+              {% else %}
+                <span class="pg-btn disabled">«</span>
+                <span class="pg-btn disabled">← Prev</span>
+              {% endif %}
+
+              {% for p in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if p %}
+                  {% if p == pagination.page %}
+                    <span class="pg-btn" style="border-color:var(--accent);color:var(--accent)">{{ p }}</span>
+                  {% else %}
+                    <a href="?page={{ p }}" class="pg-btn">{{ p }}</a>
+                  {% endif %}
+                {% else %}
+                  <span class="pg-btn disabled">…</span>
+                {% endif %}
+              {% endfor %}
+
+              {% if pagination.has_next %}
+                <a href="?page={{ pagination.next_num }}" class="pg-btn">Next →</a>
+                <a href="?page={{ pagination.pages }}" class="pg-btn">»</a>
+              {% else %}
+                <span class="pg-btn disabled">Next →</span>
+                <span class="pg-btn disabled">»</span>
+              {% endif %}
+            </div>
           </div>
+          {% else %}
+          <div style="padding:12px 20px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:0.7rem;color:var(--muted)" id="orders-count">
+            Showing {{ orders|length }} of {{ stats.total }} orders
+          </div>
+          {% endif %}
+
         </div>
       </div><!-- /orders -->
 
@@ -918,9 +992,8 @@ tr:hover td { background: var(--surface2); }
         <div class="table-card">
           <div class="table-toolbar">
             <div class="card-title">🔗 Referral Codes</div>
+            <span class="card-badge">{{ referrals|length }} codes</span>
           </div>
-          {% set referrals = namespace(items=[]) %}
-          {# Pull referrals from orders that used codes #}
           <div style="overflow-x:auto">
             <table>
               <thead>
@@ -934,25 +1007,21 @@ tr:hover td { background: var(--surface2); }
                 </tr>
               </thead>
               <tbody>
-                {% for ref in packages.values() if false %}{% endfor %}
-                {# Iterate via orders referral codes summary #}
-                {% set seen = [] %}
-                {% for o in orders if o.referral_code and o.referral_code not in seen %}
-                  {% if seen.append(o.referral_code) %}{% endif %}
-                  <tr>
-                    <td><span class="ref-code">{{ o.referral_code }}</span></td>
-                    <td class="mono">{{ o.phone }}</td>
-                    <td>{{ o.business }}</td>
-                    <td class="mono">KSh {{ o.discount }}</td>
-                    <td>
-                      <span style="font-family:var(--font-mono);color:var(--accent)">
-                        {{ orders | selectattr('referral_code','equalto', o.referral_code) | list | length }}
-                      </span>
-                    </td>
-                    <td class="mono text-muted">{{ o.created_at.strftime('%d %b %y') if o.created_at else '—' }}</td>
-                  </tr>
+                {% for ref in referrals %}
+                <tr>
+                  <td><span class="ref-code">{{ ref.code }}</span></td>
+                  <td class="mono">{{ ref.owner_phone }}</td>
+                  <td>{{ ref.owner_name or '—' }}</td>
+                  <td class="mono">KSh {{ ref.discount }}</td>
+                  <td>
+                    <span style="font-family:var(--font-mono);color:var(--accent)">
+                      {{ ref.uses }}
+                    </span>
+                  </td>
+                  <td class="mono text-muted">{{ ref.created_at.strftime('%d %b %y') if ref.created_at else '—' }}</td>
+                </tr>
                 {% else %}
-                  <tr><td colspan="6"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No referral codes used yet</div></div></td></tr>
+                <tr><td colspan="6"><div class="empty"><div class="empty-icon">🔗</div><div class="empty-text">No referral codes yet</div></div></td></tr>
                 {% endfor %}
               </tbody>
             </table>
@@ -997,7 +1066,7 @@ tr:hover td { background: var(--surface2); }
             {% endfor %}
           </div>
 
-          <button type="submit" class="btn btn-green btn-lg">💾 Save Prices & Offers</button>
+          <button type="submit" class="btn btn-green btn-lg">💾 Save Prices &amp; Offers</button>
         </form>
       </div><!-- /prices -->
 
@@ -1084,7 +1153,7 @@ tr:hover td { background: var(--surface2); }
       <input type="text" name="mpesa_ref" placeholder="e.g. QGH7X2KA or MANUAL" value="MANUAL-BYPASS">
       <div class="modal-footer">
         <button type="button" class="btn btn-ghost" onclick="closeModal('modal-bypass')">Cancel</button>
-        <button type="submit" class="btn btn-green">✓ Confirm & Generate PDF</button>
+        <button type="submit" class="btn btn-green">✓ Confirm &amp; Generate PDF</button>
       </div>
     </form>
   </div>
@@ -1216,7 +1285,7 @@ function filterOrders() {
     if (show) visible++;
   });
   const c = document.getElementById('orders-count');
-  if (c) c.textContent = `Showing ${visible} of ${rows.length} orders`;
+  if (c) c.textContent = `Showing ${visible} of ${rows.length} orders on this page`;
 }
 
 // ── Modals ─────────────────────────────────────────────────────
@@ -1255,4 +1324,3 @@ setTimeout(() => {
 </script>
 </body>
 </html>
-
