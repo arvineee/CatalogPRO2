@@ -12,10 +12,7 @@ class Config:
     # ── MySQL via PythonAnywhere ───────────────────────────────────────────────
     # Set DATABASE_URL in your PythonAnywhere environment:
     #   mysql+pymysql://YOUR_PA_USER:YOUR_DB_PASS@YOUR_PA_USER.mysql.pythonanywhere-services.com/YOUR_PA_USER$catalogpro
-    SQLALCHEMY_DATABASE_URI = os.environ.get(
-        "DATABASE_URL",
-        "sqlite:///catalogpro.db"
-    )
+    SQLALCHEMY_DATABASE_URI = "sqlite:///catalogpro.db"
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_recycle":  280,   # PythonAnywhere drops idle connections after ~5 min
         "pool_pre_ping": True,
@@ -26,9 +23,9 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # ── Admin (hidden URL) ────────────────────────────────────────────────────
-    ADMIN_SECRET_PATH = os.environ.get("ADMIN_SECRET_PATH", "")
-    ADMIN_USERNAME    = os.environ.get("ADMIN_USERNAME", "")
-    ADMIN_PASSWORD    = os.environ.get("ADMIN_PASSWORD", "")
+    ADMIN_SECRET_PATH = os.environ.get("ADMIN_SECRET_PATH", "check.ad")
+    ADMIN_USERNAME    = os.environ.get("ADMIN_USERNAME", "Admin")
+    ADMIN_PASSWORD    = os.environ.get("ADMIN_PASSWORD", "Fel28539257.")
 
     # ── Security ──────────────────────────────────────────────────────────────
     SESSION_COOKIE_HTTPONLY      = True
@@ -39,18 +36,18 @@ class Config:
     LOGIN_LOCKOUT_MINUTES        = 15
 
     # ── M-Pesa / Lipia ────────────────────────────────────────────────────────
-    LIPIA_API_KEY = os.environ.get("LIPIA_API_KEY", "")
+    LIPIA_API_KEY = os.environ.get("LIPIA_API_KEY", "3d3203837271008e39a93e6ba5a7d194d70d9318")
 
     # ── Email (Gmail SMTP) ────────────────────────────────────────────────────
-    GMAIL_USER     = os.environ.get("GMAIL_USER",     "")          # your@gmail.com
-    GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD", "")          # Gmail App Password
-    EMAIL_ENABLED  = bool(os.environ.get("GMAIL_USER", ""))
+    GMAIL_USER     = os.environ.get("GMAIL_USER",     "kiruifelix03@gmail.com")          # your@gmail.com
+    GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD", "vkgh ugkt vkei rewn")          # Gmail App Password
+    EMAIL_ENABLED  = bool(os.environ.get("GMAIL_USER", "kiruifelix03@gmail.com"))
 
     # ── WhatsApp Support ──────────────────────────────────────────────────────
-    SUPPORT_WHATSAPP = os.environ.get("SUPPORT_WHATSAPP", "")  # international format
+    SUPPORT_WHATSAPP = os.environ.get("SUPPORT_WHATSAPP", "254700459966")  # international format
 
     # ── Admin WhatsApp (for daily summary & follow-up alerts) ─────────────────
-    ADMIN_WHATSAPP = os.environ.get("ADMIN_WHATSAPP", "")
+    ADMIN_WHATSAPP = os.environ.get("ADMIN_WHATSAPP", "254700459966")
 
     # ── Files ─────────────────────────────────────────────────────────────────
     UPLOAD_FOLDER   = os.path.join(BASE, "static", "uploads")
@@ -110,4 +107,3 @@ class Config:
         "forest":   {"label": "Forest",   "desc": "Deep green, natural",    "preview": "#1a2e1a", "accent": "#c8e6c9"},
         "noir":     {"label": "Noir",     "desc": "Black & gold, luxury",   "preview": "#0a0a0a", "accent": "#c9a84c"},
     }
-

@@ -719,7 +719,7 @@ tr:hover td { background: var(--surface2); }
             <div class="stat-icon">📅</div>
             <div class="stat-label">Today's Orders</div>
             <div class="stat-value">{{ stats.today }}</div>
-            <div class="stat-sub">KSh {{ "{:,}".format(stats.today_revenue) }} today</div>
+            <div class="stat-sub">KSh {{ "{:,}".format(stats.today_revenue or 0) }} today</div>
           </div>
           <div class="stat-card purple">
             <div class="stat-icon">🧾</div>
@@ -1324,3 +1324,4 @@ setTimeout(() => {
 </script>
 </body>
 </html>
+

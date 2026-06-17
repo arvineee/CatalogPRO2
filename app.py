@@ -724,12 +724,18 @@ def admin_dashboard():
         Order.status == "paid",
         func.date(Order.paid_at) == today,
     ).count()
+    today_revenue = db.session.query(func.sum(Order.amount))\
+                              .filter(
+                                  Order.status == "paid",
+                                  func.date(Order.paid_at) == today,
+                              ).scalar() or 0
 
     stats = {
-        "total":   total_orders,
-        "paid":    paid_count,
-        "revenue": total_revenue,
-        "today":   today_count,
+        "total":         total_orders,
+        "paid":          paid_count,
+        "revenue":       total_revenue,
+        "today":         today_count,
+        "today_revenue": today_revenue,
     }
 
     # Paginated order list — 50 rows at a time, no JSON column loaded
@@ -939,4 +945,5 @@ for probe in ["/admin", "/admin/", "/wp-admin", "/wp-login.php", "/.env"]:
 if __name__ == "__main__":
     debug = os.environ.get("FLASK_DEBUG", "0") == "1"
     app.run(debug=debug, host="0.0.0.0", port=5050)
+
 
